@@ -8,11 +8,9 @@ INCLUDEPATH += .
 # Input
 HEADERS += \
     mainwindow.h \
-    scribblearea.h \
-    pen.h
+    scribblearea.h
 
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    scribblearea.cpp \
-    pen.cpp
+    scribblearea.cpp

@@ -6,6 +6,7 @@
 #include <QList>
 #include <QStyle>
 #include <QLayout>
+#include <QDialog>
 
 #include "scribblearea.h"
 
@@ -19,13 +20,20 @@ class MainWindow : public QMainWindow
         // WIDGETS
         QTabWidget *tabs;
 
+        // TOOLS
+        int penWidth;
+        QColor penColor;
+        QPen *pen;
+
         // ACTIONS
         QAction *createImageAction;
         QAction *openFileAction;
         QAction *closeFileAction;
 
+        QAction *saveAction;
         QList<QAction *> saveAsActions;
 
+        QAction *penAction;
         QAction *penColorAction;
         QAction *penWidthAction;
         QAction *clearScreenAction;
@@ -51,7 +59,6 @@ class MainWindow : public QMainWindow
         QStatusBar *windowStatusBar;
 
         // LAYOUTS
-        //QGridLayout *mainWindowLayout;
         QHBoxLayout *mainToolBarLayout;
         QHBoxLayout *statusBarLayout;
 
@@ -59,24 +66,27 @@ class MainWindow : public QMainWindow
         void createActions();
         void createMenus();
         void createMainToolBar();
+        void createTools();
         void createToolBox();
         void createSettingToolBar();
         void createStatusBar();
 
         // OTHER METHODS
         bool mayBeSave();
-        bool saveFile(const QByteArray &fileFormat);
+        bool saveFile(); // Save a file which exists
+        bool saveAsFile(const QByteArray &fileFormat);
 
     protected:
         void closeEvent(QCloseEvent *event) override;
 
-    private slots:
+    public slots:
         void createNewImage(); // create new blank image
         void open(); // open existing image
         void save();
+        void saveAs();
         void printDocument();
-        void penColor();
-        void penWidth();
+        void changePenColor();
+        void changePenWidth();
         void about();
         void clearScribbleArea();
         void closeIndexedTab(int);

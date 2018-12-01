@@ -3,13 +3,16 @@
 #define APP_NAME "QuickDraw"
 
 // Constructor
-ScribbleArea::ScribbleArea(QWidget *parent) : QWidget(parent)
+ScribbleArea::ScribbleArea(QPen *penTool, QWidget *parent) : QWidget(parent)
 {
     setAttribute(Qt::WA_StaticContents);
     modified = false;
     scribbling = false;
-    myPenWidth = 1;
-    myPenColor = Qt::blue;
+    saved = false;
+    //myPenWidth = 1;
+    //myPenColor = Qt::blue;
+    pen = penTool;
+    filePath = new QString();
 }
 
 //---------------------------------------------------------------------------------
@@ -27,6 +30,7 @@ bool ScribbleArea::openImage(const QString &fileName)
 
     image = loadedImage;
     modified = false;
+    filePath = new QString(fileName);
     update();
     return true;
 }
@@ -40,6 +44,8 @@ bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
     if (visibleImage.save(fileName, fileFormat))
     {
         modified = false;
+        saved = true;
+        filePath = new QString(fileName);
         return true;
     }
     else
@@ -48,24 +54,17 @@ bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
     }
 }
 
-//--------------------------
-//  PEN METHODS
-//--------------------------
-void ScribbleArea::setPenColor(const QColor &newColor)
-{
-    myPenColor = newColor;
-}
-
-void ScribbleArea::setPenWidth(int newWidth)
-{
-    myPenWidth = newWidth;
-}
 
 void ScribbleArea::clearImage()
 {
     image.fill(qRgb(255,255,255));
     modified = true;
     update();
+}
+
+QString* ScribbleArea::getFilePath()
+{
+    return filePath;
 }
 
 //---------------------------------------------------------------------------------
@@ -127,11 +126,24 @@ void ScribbleArea::paintEvent(QPaintEvent *event)
 
 void ScribbleArea::resizeEvent(QResizeEvent *event)
 {
+    int newWidth = qMax(width(), image.width());
+    int newHeight = qMax(height(), image.height());
+
     if(width() > image.width() || height() > image.height())
     {
-        int newWidth = qMax(width() + 128, image.width());
-        int newHeight = qMax(height(), image.height() + 128);
         resizeImage(&image, QSize(newWidth, newHeight));
+        setMinimumSize(QSize(newWidth, newHeight));
+
+        update();
+    }
+    else if(width() < image.width()) // Set the scribble area's minimum size to be equal to the image size
+    {
+        setMinimumWidth(image.width());
+        update();
+    }
+    else if(height() < image.height())
+    {
+        setMinimumHeight(image.height());
         update();
     }
     QWidget::resizeEvent(event);
@@ -143,7 +155,8 @@ void ScribbleArea::resizeEvent(QResizeEvent *event)
 void ScribbleArea::drawLineTo(const QPoint &endPoint)
 {
     QPainter painter(&image);
-    painter.setPen( QPen(myPenColor, myPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin) );
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(*pen);
     painter.drawLine(lastPoint, endPoint);
     modified = true;
 

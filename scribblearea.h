@@ -19,28 +19,34 @@ class ScribbleArea : public QWidget
 
         bool modified; // indicated if the image has been modified
         bool scribbling; // indicates if the user is currently drawing
-        int myPenWidth;
-        QColor myPenColor;
+        bool saved;
+        QString *filePath;
+        //int myPenWidth;
+        //QColor myPenColor;
+        QPen *pen;
         QImage image;
         QPoint lastPoint; // monitor constant changes of our mouse
 
 
 
     public:
-        explicit ScribbleArea(QWidget *parent = nullptr);
+        explicit ScribbleArea(QPen *pen, QWidget *parent = nullptr);
         bool openImage(const QString &fileName);
         bool saveImage(const QString &fileName, const char *fileFormat);
         bool isModified() const {return modified;}
+        bool isSaved() const {return saved;}
+        QString* getFilePath();
 
         // Pen
-        void setPenColor(const QColor &newColor);
-        void setPenWidth(int newWidth);
-        QColor penColor() const {return myPenColor;}
-        int penWidth() const {return myPenWidth;}
+        //void setPenColor(const QColor &newColor);
+        //void setPenWidth(int newWidth);
+        //QColor penColor() const {return myPenColor;}
+        //int penWidth() const {return myPenWidth;}
 
     public slots:
         void clearImage();
         void print();
+
 
     protected:
         void mousePressEvent(QMouseEvent *event) override;

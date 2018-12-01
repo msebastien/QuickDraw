@@ -9,7 +9,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     createActions();
     createMenus();
     createMainToolBar();
+
+    // TOOLS
+    penWidth = 1;
+    penColor = Qt::blue;
+    createTools();
     createToolBox();
+
     createSettingToolBar();
     createStatusBar();
 
@@ -34,11 +40,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 QWidget* MainWindow::createTab()
 {
     QWidget *tab = new QWidget;
-    ScribbleArea *scribbleArea = new ScribbleArea;
+    ScribbleArea *scribbleArea = new ScribbleArea(pen);
 
     QVBoxLayout *tabLayout = new QVBoxLayout;
     tabLayout->setContentsMargins(0, 0, 0, 0);
-    tabLayout->addWidget(scribbleArea);
+
+    QScrollArea *scrollArea = new QScrollArea;
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setWidget(scribbleArea);
+
+
+    tabLayout->addWidget(scrollArea);
     tab->setLayout(tabLayout);
 
     return tab;
@@ -47,12 +59,18 @@ QWidget* MainWindow::createTab()
 QWidget* MainWindow::createTab(QString const& fileName)
 {
     QWidget *tab = new QWidget;
-    ScribbleArea *scribbleArea = new ScribbleArea;
+    ScribbleArea *scribbleArea = new ScribbleArea(pen);
     scribbleArea->openImage(fileName);
 
     QVBoxLayout *tabLayout = new QVBoxLayout;
     tabLayout->setContentsMargins(0, 0, 0, 0);
-    tabLayout->addWidget(scribbleArea);
+
+    QScrollArea *scrollArea = new QScrollArea;
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setWidget(scribbleArea);
+
+
+    tabLayout->addWidget(scrollArea);
     tab->setLayout(tabLayout);
 
     return tab;
@@ -60,7 +78,7 @@ QWidget* MainWindow::createTab(QString const& fileName)
 
 ScribbleArea* MainWindow::currentScribbleArea()
 {
-    return tabs->currentWidget()->findChild<ScribbleArea *>();
+    return tabs->currentWidget()->findChild<QScrollArea *>()->findChild<ScribbleArea *>();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -86,7 +104,7 @@ bool MainWindow::mayBeSave()
                                    QMessageBox::Cancel);
         if(ret == QMessageBox::Save)
         {
-            return saveFile("png");
+            return saveAsFile("png");
         }
         else if (ret==QMessageBox::Cancel)
         {
@@ -96,22 +114,62 @@ bool MainWindow::mayBeSave()
     return true; // If the user chooses to discard
 }
 
-bool MainWindow::saveFile(QByteArray const& fileFormat)
+bool MainWindow::saveFile()
 {
-    QString initialPath = QDir::currentPath() + tr("/untitled.") + fileFormat;
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"), initialPath,
-                                                    tr("%1 Files (*.%2);; All Files(*)")
-                                                    .arg(QString::fromLatin1(fileFormat.toUpper()))
-                                                    .arg(QString::fromLatin1(fileFormat))
-                                                    );
-    if(fileName.isEmpty())
+    QString fileName, str;
+    QByteArray fileFormat;
+    bool ret = false;
+
+    fileName = *( currentScribbleArea()->getFilePath() );
+
+
+    if( !fileName.isEmpty() )
     {
-        return false;
-    }
-    else{
+        str = fileName.section('.', 1, 1);
+        fileFormat = str.toLatin1();
         emit fileSaved(fileName);
-        return currentScribbleArea()->saveImage(fileName, fileFormat.constData());
+        ret = currentScribbleArea()->saveImage(fileName, fileFormat.constData());
     }
+    return ret;
+}
+
+bool MainWindow::saveAsFile(QByteArray const& fileFormat)
+{
+    QString fileName;
+    bool ret = false;
+
+    if(currentScribbleArea()->isSaved())
+    {
+        fileName = *( currentScribbleArea()->getFilePath() );
+    }
+    else
+    {
+        QString initialPath = QDir::currentPath() + tr("/untitled.") + fileFormat;
+        fileName = QFileDialog::getSaveFileName(this, tr("Save As"), initialPath,
+                                                        tr("%1 Files (*.%2);; All Files(*)")
+                                                        .arg(QString::fromLatin1(fileFormat.toUpper()))
+                                                        .arg(QString::fromLatin1(fileFormat))
+                                                        );
+    }
+
+    if( !fileName.isEmpty() && (fileFormat == fileName.section('.', 1, 1)) )
+    {
+        emit fileSaved(fileName);
+        ret = currentScribbleArea()->saveImage(fileName, fileFormat.constData());
+    }else{ // If the format is different than previously when saved
+        QMessageBox::warning(this, tr("Warning") + " - " + APP_NAME, tr("The file format has been <b>modified</b>.\n Your image was previously saved in the ")
+                             + "<b>" + fileName.section('.', 1, 1).toUpper() + "</b>" + tr(" format.\n A new file will be created."));
+        fileName.remove(fileName.section('.',1,1));
+        fileName += fileFormat;
+        // Create a new file with the new format
+        fileName = QFileDialog::getSaveFileName(this, tr("Save As"), fileName,
+                                                        tr("%1 Files (*.%2);; All Files(*)")
+                                                        .arg(QString::fromLatin1(fileFormat.toUpper()))
+                                                        .arg(QString::fromLatin1(fileFormat))
+                                                        );
+        ret = currentScribbleArea()->saveImage(fileName, fileFormat.constData());
+    }
+    return ret;
 }
 
 //------------------------------------------------------------------------------
@@ -129,16 +187,38 @@ void MainWindow::open()
         QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::currentPath());
         if(!fileName.isEmpty())
         {
-            tabs->addTab(createTab(fileName), fileName);
+            tabs->addTab(createTab(fileName), "*" + fileName);
         }
     }
 }
 
 void MainWindow::save()
 {
+    if(!currentScribbleArea()->getFilePath()->isEmpty())
+    {
+        saveFile();
+    }
+    else
+    {
+        QStringList *formatList = new QStringList();
+        foreach (QByteArray format, QImageWriter::supportedImageFormats()){
+             formatList->append(format);
+        }
+
+        QString selectedFormat = QInputDialog::getItem(this, tr("Format selector") + " - " + APP_NAME,
+                                                       "This file has not been opened or previously saved.\n"
+                                                       "Choose the file format to save the image.",
+                                                       *formatList);
+        saveAsFile(selectedFormat.toLatin1());
+    }
+
+}
+
+void MainWindow::saveAs()
+{
     QAction *action = qobject_cast<QAction *>(sender());
     QByteArray fileFormat = action->data().toByteArray();
-    saveFile(fileFormat);
+    saveAsFile(fileFormat);
 }
 
 void MainWindow::printDocument()
@@ -146,24 +226,24 @@ void MainWindow::printDocument()
     currentScribbleArea()->print();
 }
 
-void MainWindow::penColor()
+void MainWindow::changePenColor()
 {
-    QColor newColor = QColorDialog::getColor(currentScribbleArea()->penColor());
+    QColor newColor = QColorDialog::getColor(pen->color());
     if(newColor.isValid())
     {
-        currentScribbleArea()->setPenColor(newColor);
+        pen->setColor(newColor);
     }
 }
 
-void MainWindow::penWidth()
+void MainWindow::changePenWidth()
 {
     bool ok;
     int newWidth = QInputDialog::getInt(this, APP_NAME + tr(" - Pen Width"),
                                         tr("Select pen width :"),
-                                        currentScribbleArea()->penWidth(),
+                                        pen->width(),
                                         1, 50, 1, &ok);
     if(ok){
-        currentScribbleArea()->setPenWidth(newWidth);
+        pen->setWidth(newWidth);
     }
 }
 
@@ -218,6 +298,11 @@ void MainWindow::createActions()
     closeFileAction = new QAction(tr("Close image"), this);
     closeFileAction->setIcon(QIcon( QIcon::fromTheme("window-close", QIcon("icons/actions/24/window-close.svg")) ));
 
+    saveAction = new QAction(tr("Save"), this);
+    saveAction->setShortcuts(QKeySequence::Save);
+    saveAction->setIcon(QIcon( QIcon::fromTheme("document-save", QIcon("icons/mimes/24/text-x-install.svg")) ));
+    connect(saveAction, SIGNAL(triggered()), this, SLOT(save()));
+
     // SAVE AS
     foreach (QByteArray format, QImageWriter::supportedImageFormats())
     {
@@ -225,15 +310,16 @@ void MainWindow::createActions()
 
         QAction *action = new QAction(text, this);
         action->setData(format);
-        connect(action, SIGNAL(triggered()), this, SLOT(save()));
+        connect(action, SIGNAL(triggered()), this, SLOT(saveAs()));
         saveAsActions.append(action);
     }
+    // PEN
 
     penColorAction = new QAction(tr("&Pen Color..."), this);
-    connect(penColorAction, SIGNAL(triggered()), this, SLOT(penColor()));
+    connect(penColorAction, SIGNAL(triggered()), this, SLOT(changePenColor()));
 
     penWidthAction = new QAction(tr("Pen &Width..."), this);
-    connect(penWidthAction, SIGNAL(triggered()), this, SLOT(penWidth()));
+    connect(penWidthAction, SIGNAL(triggered()), this, SLOT(changePenWidth()));
 
     clearScreenAction = new QAction(tr("Clear Screen"), this);
     clearScreenAction->setShortcut(tr("Ctrl+L"));
@@ -286,12 +372,18 @@ void MainWindow::createMenus()
     menuBar()->addMenu(helpMenu);
 }
 
+void MainWindow::createTools()
+{
+    pen = new QPen(penColor, penWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+}
+
 void MainWindow::createMainToolBar()
 {
     mainToolBar = addToolBar("Main Toolbar");
 
     mainToolBar->addAction(createImageAction);
     mainToolBar->addAction(openFileAction);
+    mainToolBar->addAction(saveAction);
     mainToolBar->addSeparator();
     mainToolBar->addAction(printAction);
 
