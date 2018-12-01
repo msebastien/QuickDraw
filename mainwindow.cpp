@@ -237,6 +237,7 @@ void MainWindow::createActions()
 
     clearScreenAction = new QAction(tr("Clear Screen"), this);
     clearScreenAction->setShortcut(tr("Ctrl+L"));
+    clearScreenAction->setIcon(QIcon("icons/actions/24/edit-clear.svg"));
     connect(clearScreenAction, SIGNAL(triggered()), this, SLOT(clearScribbleArea()));
 
     printAction = new QAction(tr("Print"), this);
