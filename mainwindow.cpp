@@ -142,14 +142,14 @@ bool MainWindow::saveAsFile(QByteArray const& fileFormat)
     {
         fileName = *( currentScribbleArea()->getFilePath() );
     }
-    else
+    else // We choose the location and the file name to save the image
     {
         QString initialPath = QDir::currentPath() + tr("/untitled.") + fileFormat;
         fileName = QFileDialog::getSaveFileName(this, tr("Save As"), initialPath,
                                                         tr("%1 Files (*.%2);; All Files(*)")
                                                         .arg(QString::fromLatin1(fileFormat.toUpper()))
-                                                        .arg(QString::fromLatin1(fileFormat))
-                                                        );
+                                                        .arg(QString::fromLatin1(fileFormat)) );
+        if(fileName.isEmpty()) return ret;
     }
 
     if( !fileName.isEmpty() && (fileFormat == fileName.section('.', 1, 1)) )
@@ -194,6 +194,7 @@ void MainWindow::open()
 
 void MainWindow::save()
 {
+    bool ok = false;
     if(!currentScribbleArea()->getFilePath()->isEmpty())
     {
         saveFile();
@@ -208,8 +209,9 @@ void MainWindow::save()
         QString selectedFormat = QInputDialog::getItem(this, tr("Format selector") + " - " + APP_NAME,
                                                        "This file has not been opened or previously saved.\n"
                                                        "Choose the file format to save the image.",
-                                                       *formatList);
-        saveAsFile(selectedFormat.toLatin1());
+                                                       *formatList, 0, false, &ok);
+        if (ok)
+            saveAsFile(selectedFormat.toLatin1());
     }
 
 }
