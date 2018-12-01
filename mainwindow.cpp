@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     setWindowIcon( QIcon("icons/mimes/128/image-x-generic.svg") );
     setWindowTitle(APP_NAME);
 
-
+    connect(this, SIGNAL(fileSaved(QString const&)), this, SLOT(updateTabTitle(QString const&)));
 }
 
 QWidget* MainWindow::createTab()
@@ -98,7 +98,7 @@ bool MainWindow::mayBeSave()
 
 bool MainWindow::saveFile(QByteArray const& fileFormat)
 {
-    QString initialPath = QDir::currentPath() + "/untitled." + fileFormat;
+    QString initialPath = QDir::currentPath() + tr("/untitled.") + fileFormat;
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"), initialPath,
                                                     tr("%1 Files (*.%2);; All Files(*)")
                                                     .arg(QString::fromLatin1(fileFormat.toUpper()))
@@ -109,6 +109,7 @@ bool MainWindow::saveFile(QByteArray const& fileFormat)
         return false;
     }
     else{
+        emit fileSaved(fileName);
         return currentScribbleArea()->saveImage(fileName, fileFormat.constData());
     }
 }
@@ -138,6 +139,11 @@ void MainWindow::save()
     QAction *action = qobject_cast<QAction *>(sender());
     QByteArray fileFormat = action->data().toByteArray();
     saveFile(fileFormat);
+}
+
+void MainWindow::printDocument()
+{
+    currentScribbleArea()->print();
 }
 
 void MainWindow::penColor()
@@ -190,6 +196,10 @@ void MainWindow::closeIndexedTab(int index)
 
 }
 
+void MainWindow::updateTabTitle(QString const& title){
+    tabs->setTabText(tabs->currentIndex(), title);
+}
+
 //------------------------------------------------------------------------------
 //  INIT WINDOW
 //------------------------------------------------------------------------------
@@ -197,11 +207,12 @@ void MainWindow::createActions()
 {
     createImageAction = new QAction(tr("New image"), this);
     createImageAction->setShortcut(QKeySequence("Ctrl+N"));
-    createImageAction->setIcon(QIcon( QIcon::fromTheme("insert-image", QIcon("icons/actions/24/insert-image.svg")) ));
+    createImageAction->setIcon(QIcon( QIcon::fromTheme("document-new", QIcon("icons/actions/24/document-new.svg")) ));
     connect(createImageAction, SIGNAL(triggered()), this, SLOT(createNewImage()));
 
     openFileAction = new QAction(tr("&Open..."), this);
     openFileAction->setShortcuts(QKeySequence::Open);
+    openFileAction->setIcon(QIcon( QIcon::fromTheme("folder-open", QIcon("icons/places/24/folder-open.svg")) ));
     connect(openFileAction, SIGNAL(triggered()), this, SLOT(open()));
 
     closeFileAction = new QAction(tr("Close image"), this);
@@ -231,6 +242,7 @@ void MainWindow::createActions()
     printAction = new QAction(tr("Print"), this);
     printAction->setShortcut(QKeySequence("Ctrl+N"));
     printAction->setIcon(QIcon( QIcon::fromTheme("document-print", QIcon("icons/devices/24/printer.svg")) ));
+    connect(printAction, SIGNAL(triggered()), this, SLOT(printDocument()));
 
     quitAppAction = new QAction(tr("&Quit"), this);
     quitAppAction->setShortcuts(QKeySequence::Quit);

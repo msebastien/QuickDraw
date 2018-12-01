@@ -74,11 +74,16 @@ class MainWindow : public QMainWindow
         void createNewImage(); // create new blank image
         void open(); // open existing image
         void save();
+        void printDocument();
         void penColor();
         void penWidth();
         void about();
         void clearScribbleArea();
         void closeIndexedTab(int);
+        void updateTabTitle(QString const& title);
+
+    signals:
+        void fileSaved(QString const& fileName);
 
 
     public:
