@@ -1,6 +1,6 @@
 #include <QCoreApplication>
-#include "mainwindow.h"
-#include "scribblearea.h"
+#include "include/mainwindow.h"
+#include "include/scribblearea.h"
 
 #define APP_NAME "QuickDraw"
 
@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     // Definition of some window's properties
     setMinimumSize(800, 600);
-    setWindowIcon( QIcon("icons/mimes/128/image-x-generic.svg") );
+    setWindowIcon( QIcon("ui/icons/mimes/128/image-x-generic.svg") );
     setWindowTitle(APP_NAME);
 
     connect(this, SIGNAL(fileSaved(QString const&)), this, SLOT(updateTabTitle(QString const&)));
@@ -308,20 +308,20 @@ void MainWindow::createActions()
 {
     createImageAction = new QAction(tr("New image"), this);
     createImageAction->setShortcut(QKeySequence("Ctrl+N"));
-    createImageAction->setIcon(QIcon( QIcon::fromTheme("document-new", QIcon("icons/actions/24/document-new.svg")) ));
+    createImageAction->setIcon(QIcon( QIcon::fromTheme("document-new", QIcon("ui/icons/actions/24/document-new.svg")) ));
     connect(createImageAction, SIGNAL(triggered()), this, SLOT(createNewImage()));
 
     openFileAction = new QAction(tr("&Open..."), this);
     openFileAction->setShortcuts(QKeySequence::Open);
-    openFileAction->setIcon(QIcon( QIcon::fromTheme("folder-open", QIcon("icons/places/24/folder-open.svg")) ));
+    openFileAction->setIcon(QIcon( QIcon::fromTheme("folder-open", QIcon("ui/icons/places/24/folder-open.svg")) ));
     connect(openFileAction, SIGNAL(triggered()), this, SLOT(open()));
 
     closeFileAction = new QAction(tr("Close image"), this);
-    closeFileAction->setIcon(QIcon( QIcon::fromTheme("window-close", QIcon("icons/actions/24/window-close.svg")) ));
+    closeFileAction->setIcon(QIcon( QIcon::fromTheme("window-close", QIcon("ui/icons/actions/24/window-close.svg")) ));
 
     saveAction = new QAction(tr("Save"), this);
     saveAction->setShortcuts(QKeySequence::Save);
-    saveAction->setIcon(QIcon( QIcon::fromTheme("document-save", QIcon("icons/mimes/24/text-x-install.svg")) ));
+    saveAction->setIcon(QIcon( QIcon::fromTheme("document-save", QIcon("ui/icons/mimes/24/text-x-install.svg")) ));
     connect(saveAction, SIGNAL(triggered()), this, SLOT(save()));
 
     // SAVE AS
@@ -344,12 +344,12 @@ void MainWindow::createActions()
 
     clearScreenAction = new QAction(tr("Clear Screen"), this);
     clearScreenAction->setShortcut(tr("Ctrl+L"));
-    clearScreenAction->setIcon(QIcon("icons/actions/24/edit-clear.svg"));
+    clearScreenAction->setIcon(QIcon("ui/icons/actions/24/edit-clear.svg"));
     connect(clearScreenAction, SIGNAL(triggered()), this, SLOT(clearScribbleArea()));
 
     printAction = new QAction(tr("Print"), this);
     printAction->setShortcuts(QKeySequence::Print);
-    printAction->setIcon(QIcon( QIcon::fromTheme("document-print", QIcon("icons/devices/24/printer.svg")) ));
+    printAction->setIcon(QIcon( QIcon::fromTheme("document-print", QIcon("ui/icons/devices/24/printer.svg")) ));
     connect(printAction, SIGNAL(triggered()), this, SLOT(printDocument()));
 
     quitAppAction = new QAction(tr("&Quit"), this);
@@ -357,7 +357,7 @@ void MainWindow::createActions()
     connect(quitAppAction, SIGNAL(triggered()), this, SLOT(close()));
 
     aboutAppAction = new QAction(tr("About"), this);
-    aboutAppAction->setIcon(QIcon( QIcon::fromTheme("help-about", QIcon("icons/actions/24/help-about.svg")) ));
+    aboutAppAction->setIcon(QIcon( QIcon::fromTheme("help-about", QIcon("ui/icons/actions/24/help-about.svg")) ));
     connect(aboutAppAction, SIGNAL(triggered()), this, SLOT(about()));
 
     aboutQtAction = new QAction(tr("About Qt"), this);
@@ -371,19 +371,19 @@ void MainWindow::createActions()
     drawModeAction->setCheckable(true);
     drawModeAction->setChecked(true);
     drawModeAction->setShortcut(tr("Ctrl+D"));
-    drawModeAction->setIcon(QIcon( QIcon::fromTheme("draw-freehand", QIcon("icons/actions/24/draw-freehand.svg")) ));
+    drawModeAction->setIcon(QIcon( QIcon::fromTheme("draw-freehand", QIcon("ui/icons/actions/24/draw-freehand.svg")) ));
     connect(drawModeAction, SIGNAL(triggered()), this, SLOT(drawMode()));
 
     fillModeAction = new QAction(tr("Fill Mode"), this);
     fillModeAction->setCheckable(true);
     fillModeAction->setShortcut(tr("Ctrl+F"));
-    fillModeAction->setIcon(QIcon( QIcon::fromTheme("color-fill", QIcon("icons/actions/24/color-fill.svg")) ));
+    fillModeAction->setIcon(QIcon( QIcon::fromTheme("color-fill", QIcon("ui/icons/actions/24/color-fill.svg")) ));
     connect(fillModeAction, SIGNAL(triggered()), this, SLOT(fillMode()));
 
     eraseModeAction = new QAction(tr("Erase Mode"), this);
     eraseModeAction->setCheckable(true);
     eraseModeAction->setShortcut(tr("Ctrl+E"));
-    eraseModeAction->setIcon(QIcon( QIcon::fromTheme("draw-eraser", QIcon("icons/actions/24/draw-eraser.svg")) ));
+    eraseModeAction->setIcon(QIcon( QIcon::fromTheme("draw-eraser", QIcon("ui/icons/actions/24/draw-eraser.svg")) ));
     connect(eraseModeAction, SIGNAL(triggered()), this, SLOT(eraseMode()));
 
     modeActionGroup->addAction(drawModeAction);

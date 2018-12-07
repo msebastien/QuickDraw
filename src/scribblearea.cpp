@@ -1,4 +1,4 @@
-#include "scribblearea.h"
+#include "include/scribblearea.h"
 
 #define APP_NAME "QuickDraw"
 
