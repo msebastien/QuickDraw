@@ -6,6 +6,7 @@
 ScribbleArea::ScribbleArea(QPen *penTool, QWidget *parent) : QWidget(parent)
 {
     setAttribute(Qt::WA_StaticContents);
+    setCursor(QCursor(Qt::CursorShape::CrossCursor));
     modified = false;
     scribbling = false;
     saved = false;
@@ -13,6 +14,9 @@ ScribbleArea::ScribbleArea(QPen *penTool, QWidget *parent) : QWidget(parent)
     //myPenColor = Qt::blue;
     pen = penTool;
     filePath = new QString();
+
+    // Set default mode
+    selectedMode = QD::DRAW;
 }
 
 //---------------------------------------------------------------------------------
@@ -57,7 +61,7 @@ bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
 
 void ScribbleArea::clearImage()
 {
-    image.fill(qRgb(255,255,255));
+    image.fill(QColor(255,255,255));
     modified = true;
     update();
 }
@@ -65,6 +69,16 @@ void ScribbleArea::clearImage()
 QString* ScribbleArea::getFilePath()
 {
     return filePath;
+}
+
+void ScribbleArea::setMode(QD::Mode mode)
+{
+    selectedMode = mode;
+}
+
+QD::Mode ScribbleArea::mode()
+{
+    return selectedMode;
 }
 
 //---------------------------------------------------------------------------------
@@ -96,24 +110,65 @@ void ScribbleArea::print()
 void ScribbleArea::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton)
-    {
-        lastPoint = event->pos(); // Get pos of the mouse cursor
-        scribbling = true;
+    {     
+        switch(selectedMode)
+        {
+            case QD::DRAW:
+                lastPoint = event->pos(); // Get pos of the mouse cursor
+                scribbling = true;
+                break;
+            case QD::FILL:
+                break;
+            case QD::ERASE:
+                lastPoint = event->pos(); // Get pos of the mouse cursor
+                scribbling = true;
+                break;
+            case QD::ZOOM:
+                break;
+        }
     }
 }
 
 void ScribbleArea::mouseMoveEvent(QMouseEvent *event)
 {
     if((event->buttons() & Qt::LeftButton) && scribbling)
-        drawLineTo(event->pos());
+    {
+        switch(selectedMode)
+        {
+            case QD::DRAW:
+                drawLineTo(event->pos());
+                break;
+            case QD::FILL:
+                break;
+            case QD::ERASE:
+                eraseTo(event->pos());
+                break;
+            case QD::ZOOM:
+                break;
+        }
+    }
+
 }
 
 void ScribbleArea::mouseReleaseEvent(QMouseEvent *event)
 {
     if((event->buttons() == Qt::LeftButton) && scribbling)
     {
-        drawLineTo(event->pos());
-        scribbling = false;
+        switch(selectedMode)
+        {
+            case QD::DRAW:
+                drawLineTo(event->pos());
+                scribbling = false;
+                break;
+            case QD::FILL:
+                break;
+            case QD::ERASE:
+                eraseTo(event->pos());
+                scribbling = false;
+                break;
+            case QD::ZOOM:
+                break;
+        }
     }
 }
 
@@ -166,20 +221,41 @@ void ScribbleArea::drawLineTo(const QPoint &endPoint)
     lastPoint = endPoint;
 }
 
+void ScribbleArea::eraseTo(const QPoint &endPoint)
+{
+    QPainter painter(&image);
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    // Alpha : 0 (Transparent) to 255 (Opaque)
+    painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    pen->setColor(QColor(255, 255, 255));
+    painter.setPen(*pen);
+
+
+    painter.drawLine(lastPoint, endPoint);
+    modified = true;
+
+    update();
+    lastPoint = endPoint;
+}
+
 void ScribbleArea::resizeImage(QImage *image, const QSize &newSize)
 {
     if(image->size() == newSize)
         return;
 
     // Create a new white image
-    QImage newImage(newSize, QImage::Format_RGB32);
-    newImage.fill( qRgb(255, 255, 255) );
+    QImage newImage(newSize, QImage::Format_ARGB32);
+    newImage.fill(QColor(255, 255, 255));
 
     // Draw the image onto the newImage. It allows to avoid black areas
     // when resizing like with QImage::copy()
 
     QPainter painter(&newImage);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
     painter.drawImage(QPoint(0,0), *image);
 
     *image = newImage;
 }
+
+

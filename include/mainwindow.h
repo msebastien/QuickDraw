@@ -38,6 +38,12 @@ class MainWindow : public QMainWindow
         QAction *penWidthAction;
         QAction *clearScreenAction;
 
+        QActionGroup *modeActionGroup;
+        QAction *drawModeAction;
+        QAction *fillModeAction;
+        QAction *eraseModeAction;
+        QAction *zoomModeAction;
+
         QAction *printAction;
         QAction *quitAppAction;
         QAction *aboutAppAction;
@@ -91,6 +97,10 @@ class MainWindow : public QMainWindow
         void clearScribbleArea();
         void closeIndexedTab(int);
         void updateTabTitle(QString const& title);
+
+        void drawMode();
+        void fillMode();
+        void eraseMode();
 
     signals:
         void fileSaved(QString const& fileName);

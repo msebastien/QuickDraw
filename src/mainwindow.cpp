@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     tabs->setTabsClosable(true);
     tabs->setMovable(true);
     setCentralWidget(tabs);
+    //qApp->setStyleSheet("QScrollBar { background: opaque} ");
 
     // Create a default tab when opening the window
     tabs->addTab(createTab(), tr("Untitled"));
@@ -40,15 +41,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 QWidget* MainWindow::createTab()
 {
     QWidget *tab = new QWidget;
+    tab->setStyleSheet("background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;");
     ScribbleArea *scribbleArea = new ScribbleArea(pen);
-
     QVBoxLayout *tabLayout = new QVBoxLayout;
     tabLayout->setContentsMargins(0, 0, 0, 0);
 
     QScrollArea *scrollArea = new QScrollArea;
+
     scrollArea->setWidgetResizable(true);
     scrollArea->setWidget(scribbleArea);
-
 
     tabLayout->addWidget(scrollArea);
     tab->setLayout(tabLayout);
@@ -59,6 +60,7 @@ QWidget* MainWindow::createTab()
 QWidget* MainWindow::createTab(QString const& fileName)
 {
     QWidget *tab = new QWidget;
+    tab->setStyleSheet("background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;");
     ScribbleArea *scribbleArea = new ScribbleArea(pen);
     scribbleArea->openImage(fileName);
 
@@ -233,6 +235,7 @@ void MainWindow::changePenColor()
     QColor newColor = QColorDialog::getColor(pen->color());
     if(newColor.isValid())
     {
+        penColor = newColor;
         pen->setColor(newColor);
     }
 }
@@ -245,6 +248,7 @@ void MainWindow::changePenWidth()
                                         pen->width(),
                                         1, 50, 1, &ok);
     if(ok){
+        penWidth = newWidth;
         pen->setWidth(newWidth);
     }
 }
@@ -266,8 +270,9 @@ void MainWindow::closeIndexedTab(int index)
     if(mayBeSave()){
         if(tabs->count() > 1)
         {
-            tabs->widget(index)->findChild<ScribbleArea *>()->close();
-                    tabs->widget(index)->findChild<QWidget*>()->close();
+            tabs->widget(index)->findChild<QScrollArea *>()->findChild<ScribbleArea *>()->close();
+            tabs->widget(index)->findChild<QScrollArea *>()->close();
+            tabs->widget(index)->findChild<QWidget*>()->close();
             tabs->removeTab(index);
         }
         else
@@ -280,6 +285,20 @@ void MainWindow::closeIndexedTab(int index)
 
 void MainWindow::updateTabTitle(QString const& title){
     tabs->setTabText(tabs->currentIndex(), title);
+}
+
+void MainWindow::drawMode(){
+    currentScribbleArea()->setMode(QD::DRAW);
+    pen->setColor(penColor);
+    pen->setWidth(penWidth);
+}
+
+void MainWindow::fillMode(){
+    currentScribbleArea()->setMode(QD::FILL);
+}
+
+void MainWindow::eraseMode(){
+    currentScribbleArea()->setMode(QD::ERASE);
 }
 
 //------------------------------------------------------------------------------
@@ -315,8 +334,8 @@ void MainWindow::createActions()
         connect(action, SIGNAL(triggered()), this, SLOT(saveAs()));
         saveAsActions.append(action);
     }
-    // PEN
 
+    // PEN
     penColorAction = new QAction(tr("&Pen Color..."), this);
     connect(penColorAction, SIGNAL(triggered()), this, SLOT(changePenColor()));
 
@@ -329,7 +348,7 @@ void MainWindow::createActions()
     connect(clearScreenAction, SIGNAL(triggered()), this, SLOT(clearScribbleArea()));
 
     printAction = new QAction(tr("Print"), this);
-    printAction->setShortcut(QKeySequence("Ctrl+N"));
+    printAction->setShortcuts(QKeySequence::Print);
     printAction->setIcon(QIcon( QIcon::fromTheme("document-print", QIcon("icons/devices/24/printer.svg")) ));
     connect(printAction, SIGNAL(triggered()), this, SLOT(printDocument()));
 
@@ -343,6 +362,33 @@ void MainWindow::createActions()
 
     aboutQtAction = new QAction(tr("About Qt"), this);
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
+    // MODES
+    modeActionGroup = new QActionGroup(this);
+    modeActionGroup->setExclusive(true);
+
+    drawModeAction = new QAction(tr("Draw Mode"), this);
+    drawModeAction->setCheckable(true);
+    drawModeAction->setChecked(true);
+    drawModeAction->setShortcut(tr("Ctrl+D"));
+    drawModeAction->setIcon(QIcon( QIcon::fromTheme("draw-freehand", QIcon("icons/actions/24/draw-freehand.svg")) ));
+    connect(drawModeAction, SIGNAL(triggered()), this, SLOT(drawMode()));
+
+    fillModeAction = new QAction(tr("Fill Mode"), this);
+    fillModeAction->setCheckable(true);
+    fillModeAction->setShortcut(tr("Ctrl+F"));
+    fillModeAction->setIcon(QIcon( QIcon::fromTheme("color-fill", QIcon("icons/actions/24/color-fill.svg")) ));
+    connect(fillModeAction, SIGNAL(triggered()), this, SLOT(fillMode()));
+
+    eraseModeAction = new QAction(tr("Erase Mode"), this);
+    eraseModeAction->setCheckable(true);
+    eraseModeAction->setShortcut(tr("Ctrl+E"));
+    eraseModeAction->setIcon(QIcon( QIcon::fromTheme("draw-eraser", QIcon("icons/actions/24/draw-eraser.svg")) ));
+    connect(eraseModeAction, SIGNAL(triggered()), this, SLOT(eraseMode()));
+
+    modeActionGroup->addAction(drawModeAction);
+    modeActionGroup->addAction(fillModeAction);
+    modeActionGroup->addAction(eraseModeAction);
 
 }
 
@@ -395,6 +441,10 @@ void MainWindow::createToolBox()
 {
     toolBox = new QToolBar("ToolBox");
     addToolBar(Qt::ToolBarArea::LeftToolBarArea, toolBox);
+    toolBox->addAction(drawModeAction);
+    toolBox->addAction(fillModeAction);
+    toolBox->addAction(eraseModeAction);
+    toolBox->addSeparator();
     toolBox->addAction(clearScreenAction);
 }
 
