@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     createMainToolBar();
 
     // TOOLS
+    mode = QD::DRAW;
     penWidth = 1;
     penColor = Qt::blue;
     createTools();
@@ -41,15 +42,23 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 QWidget* MainWindow::createTab()
 {
     QWidget *tab = new QWidget;
-    tab->setStyleSheet("background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;");
-    ScribbleArea *scribbleArea = new ScribbleArea(pen);
+
+    ScribbleArea *scribbleArea = new ScribbleArea(pen, mode);
     QVBoxLayout *tabLayout = new QVBoxLayout;
     tabLayout->setContentsMargins(0, 0, 0, 0);
 
-    QScrollArea *scrollArea = new QScrollArea;
+    // ViewPort Area
+    QWidget *area = new QWidget;
+    QVBoxLayout *areaLayout = new QVBoxLayout;
+    areaLayout->setContentsMargins(0, 0, 0, 0);
+    areaLayout->addWidget(scribbleArea);
+    area->setLayout(areaLayout);
+    area->setAttribute(Qt::WA_StaticContents);
+    area->setStyleSheet("background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;");
 
+    QScrollArea *scrollArea = new QScrollArea;
     scrollArea->setWidgetResizable(true);
-    scrollArea->setWidget(scribbleArea);
+    scrollArea->setWidget(area);
 
     tabLayout->addWidget(scrollArea);
     tab->setLayout(tabLayout);
@@ -60,16 +69,25 @@ QWidget* MainWindow::createTab()
 QWidget* MainWindow::createTab(QString const& fileName)
 {
     QWidget *tab = new QWidget;
-    tab->setStyleSheet("background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;");
-    ScribbleArea *scribbleArea = new ScribbleArea(pen);
+
+    ScribbleArea *scribbleArea = new ScribbleArea(pen, mode);
     scribbleArea->openImage(fileName);
 
     QVBoxLayout *tabLayout = new QVBoxLayout;
     tabLayout->setContentsMargins(0, 0, 0, 0);
 
+    // ViewPort Area
+    QWidget *area = new QWidget;
+    QVBoxLayout *areaLayout = new QVBoxLayout;
+    areaLayout->setContentsMargins(0, 0, 0, 0);
+    areaLayout->addWidget(scribbleArea);
+    area->setLayout(areaLayout);
+    area->setAttribute(Qt::WA_StaticContents);
+    area->setStyleSheet("background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;");
+
     QScrollArea *scrollArea = new QScrollArea;
     scrollArea->setWidgetResizable(true);
-    scrollArea->setWidget(scribbleArea);
+    scrollArea->setWidget(area);
 
 
     tabLayout->addWidget(scrollArea);
@@ -81,6 +99,11 @@ QWidget* MainWindow::createTab(QString const& fileName)
 ScribbleArea* MainWindow::currentScribbleArea()
 {
     return tabs->currentWidget()->findChild<QScrollArea *>()->findChild<ScribbleArea *>();
+}
+
+ScribbleArea* MainWindow::indexedScribbleArea(int index)
+{
+    return tabs->widget(index)->findChild<QScrollArea *>()->findChild<ScribbleArea *>();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -287,18 +310,26 @@ void MainWindow::updateTabTitle(QString const& title){
     tabs->setTabText(tabs->currentIndex(), title);
 }
 
+void MainWindow::selectMode(){
+    currentScribbleArea()->setMode(QD::SELECT);
+    mode = QD::SELECT; // memorize selected mode in MainWindow
+}
+
 void MainWindow::drawMode(){
     currentScribbleArea()->setMode(QD::DRAW);
     pen->setColor(penColor);
     pen->setWidth(penWidth);
+    mode = QD::DRAW; // memorize selected mode in MainWindow
 }
 
 void MainWindow::fillMode(){
     currentScribbleArea()->setMode(QD::FILL);
+    mode = QD::FILL; // memorize selected mode in MainWindow
 }
 
 void MainWindow::eraseMode(){
     currentScribbleArea()->setMode(QD::ERASE);
+    mode = QD::ERASE; // memorize selected mode in MainWindow
 }
 
 //------------------------------------------------------------------------------
@@ -367,6 +398,12 @@ void MainWindow::createActions()
     modeActionGroup = new QActionGroup(this);
     modeActionGroup->setExclusive(true);
 
+    selectModeAction = new QAction(tr("Select Mode"), this);
+    selectModeAction->setCheckable(true);
+    selectModeAction->setShortcut(tr("Ctrl+W"));
+    selectModeAction->setIcon(QIcon( QIcon::fromTheme("tool-pointer", QIcon("ui/icons/categories/24/preferences-desktop-accessibility-pointing.svg")) ));
+    connect(selectModeAction, SIGNAL(triggered()), this, SLOT(selectMode()));
+
     drawModeAction = new QAction(tr("Draw Mode"), this);
     drawModeAction->setCheckable(true);
     drawModeAction->setChecked(true);
@@ -386,6 +423,7 @@ void MainWindow::createActions()
     eraseModeAction->setIcon(QIcon( QIcon::fromTheme("draw-eraser", QIcon("ui/icons/actions/24/draw-eraser.svg")) ));
     connect(eraseModeAction, SIGNAL(triggered()), this, SLOT(eraseMode()));
 
+    modeActionGroup->addAction(selectModeAction);
     modeActionGroup->addAction(drawModeAction);
     modeActionGroup->addAction(fillModeAction);
     modeActionGroup->addAction(eraseModeAction);
@@ -441,6 +479,7 @@ void MainWindow::createToolBox()
 {
     toolBox = new QToolBar("ToolBox");
     addToolBar(Qt::ToolBarArea::LeftToolBarArea, toolBox);
+    toolBox->addAction(selectModeAction);
     toolBox->addAction(drawModeAction);
     toolBox->addAction(fillModeAction);
     toolBox->addAction(eraseModeAction);

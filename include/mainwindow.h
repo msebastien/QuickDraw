@@ -21,6 +21,7 @@ class MainWindow : public QMainWindow
         QTabWidget *tabs;
 
         // TOOLS
+        QD::Mode mode;
         int penWidth;
         QColor penColor;
         QPen *pen;
@@ -39,6 +40,7 @@ class MainWindow : public QMainWindow
         QAction *clearScreenAction;
 
         QActionGroup *modeActionGroup;
+        QAction *selectModeAction;
         QAction *drawModeAction;
         QAction *fillModeAction;
         QAction *eraseModeAction;
@@ -98,6 +100,7 @@ class MainWindow : public QMainWindow
         void closeIndexedTab(int);
         void updateTabTitle(QString const& title);
 
+        void selectMode();
         void drawMode();
         void fillMode();
         void eraseMode();
@@ -111,6 +114,7 @@ class MainWindow : public QMainWindow
         QWidget *createTab();
         QWidget *createTab(QString const& fileName);
         ScribbleArea* currentScribbleArea();
+        ScribbleArea* indexedScribbleArea(int index);
 
 
 };

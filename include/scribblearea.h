@@ -9,9 +9,10 @@
 #include <QPrinter>
 #include <QPrintDialog>
 
+
 namespace QD {
     enum Mode{
-      DRAW, FILL, ERASE, ZOOM
+      DRAW, SELECT, FILL, ERASE, ZOOM, PIPETTE
     };
 }
 
@@ -34,16 +35,16 @@ class ScribbleArea : public QWidget
         QImage image;
         QPoint lastPoint; // monitor constant changes of our mous
         QD::Mode selectedMode;
-
-
+        QRubberBand *rubberBand;
+        QWidget * background;
 
     public:
-        explicit ScribbleArea(QPen *pen, QWidget *parent = nullptr);
+        explicit ScribbleArea(QPen *pen, QD::Mode mode = QD::DRAW, QWidget *parent = nullptr);
+        void resize(QSize const& size);
         bool openImage(const QString &fileName);
         bool saveImage(const QString &fileName, const char *fileFormat);
         void clearImage();
         void print();
-
         bool isModified() const {return modified;}
         bool isSaved() const {return saved;}
         QString* getFilePath();
@@ -62,6 +63,7 @@ class ScribbleArea : public QWidget
         void mouseReleaseEvent(QMouseEvent *event) override;
         void paintEvent(QPaintEvent *event) override; // Update the scribble area (some parts)
         void resizeEvent(QResizeEvent *event) override;
+
 };
 
 #endif // SCRIBBLEAREA_H

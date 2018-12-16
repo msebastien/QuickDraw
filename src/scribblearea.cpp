@@ -1,9 +1,10 @@
-#include "include/scribblearea.h"
+﻿#include "include/scribblearea.h"
 
 #define APP_NAME "QuickDraw"
 
+
 // Constructor
-ScribbleArea::ScribbleArea(QPen *penTool, QWidget *parent) : QWidget(parent)
+ScribbleArea::ScribbleArea(QPen *penTool, QD::Mode mode, QWidget *parent) : QWidget(parent)
 {
     setAttribute(Qt::WA_StaticContents);
     setCursor(QCursor(Qt::CursorShape::CrossCursor));
@@ -15,8 +16,12 @@ ScribbleArea::ScribbleArea(QPen *penTool, QWidget *parent) : QWidget(parent)
     pen = penTool;
     filePath = new QString();
 
+    // Set Rubber band style
+    rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+
+
     // Set default mode
-    selectedMode = QD::DRAW;
+    selectedMode = mode;
 }
 
 //---------------------------------------------------------------------------------
@@ -79,6 +84,13 @@ void ScribbleArea::setMode(QD::Mode mode)
 QD::Mode ScribbleArea::mode()
 {
     return selectedMode;
+
+}
+
+void ScribbleArea::resize(QSize const& size)
+{
+    setMinimumSize(size); // Resize image
+    parentWidget()->setMinimumSize(size); // Resize Widget
 }
 
 //---------------------------------------------------------------------------------
@@ -104,18 +116,27 @@ void ScribbleArea::print()
     }
 #endif //QT_CONFIG(printdialog)
 }
+
 //----------------------------------------------------------------------------------
 //  EVENTS (PROTECTED METHODS)
 //----------------------------------------------------------------------------------
 void ScribbleArea::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton)
-    {     
+    {
         switch(selectedMode)
         {
             case QD::DRAW:
                 lastPoint = event->pos(); // Get pos of the mouse cursor
                 scribbling = true;
+                break;
+            case QD::SELECT:
+                lastPoint = event->pos();
+                scribbling = true;
+                if (!rubberBand)
+                    rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+                rubberBand->setGeometry( QRect(lastPoint, QSize()) );
+                rubberBand->show();
                 break;
             case QD::FILL:
                 break;
@@ -124,6 +145,8 @@ void ScribbleArea::mousePressEvent(QMouseEvent *event)
                 scribbling = true;
                 break;
             case QD::ZOOM:
+                break;
+            case QD::PIPETTE:
                 break;
         }
     }
@@ -138,12 +161,17 @@ void ScribbleArea::mouseMoveEvent(QMouseEvent *event)
             case QD::DRAW:
                 drawLineTo(event->pos());
                 break;
+            case QD::SELECT:
+                rubberBand->setGeometry(QRect(lastPoint, event->pos()).normalized());
+                break;
             case QD::FILL:
                 break;
             case QD::ERASE:
                 eraseTo(event->pos());
                 break;
             case QD::ZOOM:
+                break;
+            case QD::PIPETTE:
                 break;
         }
     }
@@ -160,6 +188,12 @@ void ScribbleArea::mouseReleaseEvent(QMouseEvent *event)
                 drawLineTo(event->pos());
                 scribbling = false;
                 break;
+            case QD::SELECT:
+                rubberBand->hide();
+                scribbling = false;
+                // determine selection, for example using QRect::intersects()
+                // and QRect::contains().
+                break;
             case QD::FILL:
                 break;
             case QD::ERASE:
@@ -167,6 +201,8 @@ void ScribbleArea::mouseReleaseEvent(QMouseEvent *event)
                 scribbling = false;
                 break;
             case QD::ZOOM:
+                break;
+            case QD::PIPETTE:
                 break;
         }
     }
@@ -187,7 +223,10 @@ void ScribbleArea::resizeEvent(QResizeEvent *event)
     if(width() > image.width() || height() > image.height())
     {
         resizeImage(&image, QSize(newWidth, newHeight));
-        setMinimumSize(QSize(newWidth, newHeight));
+        //setMinimumSize(QSize(newWidth, newHeight)); // Resize image
+        //parentWidget()->setMinimumSize( this->size() ); // Resize Widget
+        resize(QSize(newWidth, newHeight));
+
 
         update();
     }
@@ -228,7 +267,6 @@ void ScribbleArea::eraseTo(const QPoint &endPoint)
     painter.setRenderHint(QPainter::Antialiasing, true);
     // Alpha : 0 (Transparent) to 255 (Opaque)
     painter.setCompositionMode(QPainter::CompositionMode_Clear);
-    pen->setColor(QColor(255, 255, 255));
     painter.setPen(*pen);
 
 
