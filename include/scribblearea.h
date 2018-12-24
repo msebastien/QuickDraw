@@ -14,6 +14,8 @@ namespace QD {
     enum Mode{
       DRAW, SELECT, FILL, ERASE, ZOOM, PIPETTE
     };
+
+    const int BORDER_SIZE = 1; // Border size in pixels
 }
 
 class ScribbleArea : public QWidget
@@ -28,19 +30,20 @@ class ScribbleArea : public QWidget
         bool modified; // indicated if the image has been modified
         bool scribbling; // indicates if the user is currently drawing
         bool saved;
+        bool imageOpened;
+
+        double scaleFactor;
         QString *filePath;
-        //int myPenWidth;
-        //QColor myPenColor;
         QPen *pen;
         QImage image;
-        QPoint lastPoint; // monitor constant changes of our mous
+        QPoint lastPoint; // monitor constant changes of our mouse cursor
         QD::Mode selectedMode;
         QRubberBand *rubberBand;
         QWidget * background;
 
     public:
         explicit ScribbleArea(QPen *pen, QD::Mode mode = QD::DRAW, QWidget *parent = nullptr);
-        void resize(QSize const& size);
+        void resizeScribbleArea(QSize const& size);
         bool openImage(const QString &fileName);
         bool saveImage(const QString &fileName, const char *fileFormat);
         void clearImage();

@@ -1,6 +1,7 @@
 #include <QCoreApplication>
 #include "include/mainwindow.h"
 #include "include/scribblearea.h"
+#include "include/newimagedialog.h"
 
 #define APP_NAME "QuickDraw"
 
@@ -24,7 +25,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     tabs->setTabsClosable(true);
     tabs->setMovable(true);
     setCentralWidget(tabs);
-    //qApp->setStyleSheet("QScrollBar { background: opaque} ");
 
     // Create a default tab when opening the window
     tabs->addTab(createTab(), tr("Untitled"));
@@ -50,14 +50,17 @@ QWidget* MainWindow::createTab()
     // ViewPort Area
     QWidget *area = new QWidget;
     QVBoxLayout *areaLayout = new QVBoxLayout;
-    areaLayout->setContentsMargins(0, 0, 0, 0);
+    areaLayout->setContentsMargins(QD::BORDER_SIZE, QD::BORDER_SIZE, 0, 0);
     areaLayout->addWidget(scribbleArea);
     area->setLayout(areaLayout);
     area->setAttribute(Qt::WA_StaticContents);
-    area->setStyleSheet("background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;");
+    area->setObjectName("Viewport");
+    area->setStyleSheet( QString("QWidget#Viewport {border: %1px solid black; background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;}").arg(QD::BORDER_SIZE) );
 
     QScrollArea *scrollArea = new QScrollArea;
     scrollArea->setWidgetResizable(true);
+    scrollArea->setAlignment(Qt::AlignCenter);
+    //scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setWidget(area);
 
     tabLayout->addWidget(scrollArea);
@@ -79,14 +82,17 @@ QWidget* MainWindow::createTab(QString const& fileName)
     // ViewPort Area
     QWidget *area = new QWidget;
     QVBoxLayout *areaLayout = new QVBoxLayout;
-    areaLayout->setContentsMargins(0, 0, 0, 0);
+    areaLayout->setContentsMargins(QD::BORDER_SIZE, QD::BORDER_SIZE, 0, 0);
     areaLayout->addWidget(scribbleArea);
     area->setLayout(areaLayout);
     area->setAttribute(Qt::WA_StaticContents);
-    area->setStyleSheet("background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;");
+    area->setObjectName("Viewport");
+    area->setStyleSheet( QString("QWidget#Viewport {border: %1px solid black; background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;}").arg(QD::BORDER_SIZE) );
 
     QScrollArea *scrollArea = new QScrollArea;
     scrollArea->setWidgetResizable(true);
+    scrollArea->setAlignment(Qt::AlignCenter);
+    //scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setWidget(area);
 
 
@@ -202,6 +208,8 @@ bool MainWindow::saveAsFile(QByteArray const& fileFormat)
 //------------------------------------------------------------------------------
 void MainWindow::createNewImage()
 {
+    NewImageDialog newImage(this);
+    newImage.exec();
     tabs->addTab(createTab(), tr("Untitled"));
 }
 
@@ -212,7 +220,7 @@ void MainWindow::open()
         QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::currentPath());
         if(!fileName.isEmpty())
         {
-            tabs->addTab(createTab(fileName), "*" + fileName);
+            tabs->addTab(createTab(fileName), "*" + fileName.section('/',-1, -1));
         }
     }
 }
@@ -306,8 +314,9 @@ void MainWindow::closeIndexedTab(int index)
 
 }
 
-void MainWindow::updateTabTitle(QString const& title){
-    tabs->setTabText(tabs->currentIndex(), title);
+void MainWindow::updateTabTitle(QString const& filePath){
+    QString fileName = filePath.section('/', -1, -1);
+    tabs->setTabText(tabs->currentIndex(), fileName);
 }
 
 void MainWindow::selectMode(){
@@ -437,6 +446,7 @@ void MainWindow::createMenus()
         saveAsMenu->addAction(action);
 
     fileMenu = new QMenu(tr("&File"), this);
+    fileMenu->addAction(createImageAction);
     fileMenu->addAction(openFileAction);
     fileMenu->addMenu(saveAsMenu);
     fileMenu->addAction(printAction);

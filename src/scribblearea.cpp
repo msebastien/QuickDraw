@@ -11,13 +11,34 @@ ScribbleArea::ScribbleArea(QPen *penTool, QD::Mode mode, QWidget *parent) : QWid
     modified = false;
     scribbling = false;
     saved = false;
-    //myPenWidth = 1;
-    //myPenColor = Qt::blue;
+
     pen = penTool;
     filePath = new QString();
 
     // Set Rubber band style
     rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+    rubberBand->setWindowOpacity(0.0);
+
+    imageOpened = false;
+
+    //--- Create a new image---
+    QImage newImage(QSize(1,1), QImage::Format_ARGB32);
+    newImage.fill(QColor(255, 255, 255));
+    image = newImage;
+
+    //--- Resize---
+    int newWidth = qMax(width(), newImage.width());
+    int newHeight = qMax(height(), newImage.height());
+    if(width() > image.width() || height() > image.height())
+    {
+        resizeImage(&image, QSize(newWidth-2*QD::BORDER_SIZE, newHeight-2*QD::BORDER_SIZE));
+        //setMinimumSize(QSize(newWidth, newHeight)); // Resize image
+        //parentWidget()->setMinimumSize( this->size() ); // Resize Widget
+        //resizeScribbleArea(QSize(newWidth+2*QD::BORDER_SIZE, newHeight+2*QD::BORDER_SIZE));
+
+
+        update();
+    }
 
 
     // Set default mode
@@ -34,12 +55,14 @@ bool ScribbleArea::openImage(const QString &fileName)
     {
         return false;
     }
-    QSize newSize = loadedImage.size().expandedTo(size());
+    //QSize newSize = loadedImage.size().expandedTo( QSize(width()-2*QD::BORDER_SIZE, height()-2*QD::BORDER_SIZE) );
+    QSize newSize(loadedImage.width() - 2*QD::BORDER_SIZE, loadedImage.height() - 2*QD::BORDER_SIZE);
     resizeImage(&loadedImage, newSize);
 
     image = loadedImage;
     modified = false;
     filePath = new QString(fileName);
+    imageOpened = true;
     update();
     return true;
 }
@@ -48,7 +71,7 @@ bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
 {
     QImage visibleImage = image;
 
-    resizeImage(&visibleImage, size()); // Resize image as it is the same size as the widget
+    resizeImage(&visibleImage, QSize(width()-2*QD::BORDER_SIZE, height()-2*QD::BORDER_SIZE)); // Resize image as it is the same size as the widget
 
     if (visibleImage.save(fileName, fileFormat))
     {
@@ -87,10 +110,11 @@ QD::Mode ScribbleArea::mode()
 
 }
 
-void ScribbleArea::resize(QSize const& size)
+void ScribbleArea::resizeScribbleArea(QSize const& size)
 {
     setMinimumSize(size); // Resize image
-    parentWidget()->setMinimumSize(size); // Resize Widget
+    parentWidget()->setFixedSize(size); // Resize Widget
+    //parentWidget()->setGeometry(QRect(QPoint(0+QD::BORDER_SIZE,0+QD::BORDER_SIZE), size));
 }
 
 //---------------------------------------------------------------------------------
@@ -217,29 +241,44 @@ void ScribbleArea::paintEvent(QPaintEvent *event)
 
 void ScribbleArea::resizeEvent(QResizeEvent *event)
 {
-    int newWidth = qMax(width(), image.width());
-    int newHeight = qMax(height(), image.height());
+
+    int newWidth = qMax(width()-2*QD::BORDER_SIZE, image.width()-2*QD::BORDER_SIZE);
+    int newHeight = qMax(height()-2*QD::BORDER_SIZE, image.height()-2*QD::BORDER_SIZE);
+
+
 
     if(width() > image.width() || height() > image.height())
     {
-        resizeImage(&image, QSize(newWidth, newHeight));
+        if(imageOpened)
+        {
+            newWidth = qMin(width()-2*QD::BORDER_SIZE, image.width()-2*QD::BORDER_SIZE);
+            newHeight = qMin(height()-2*QD::BORDER_SIZE, image.height()-2*QD::BORDER_SIZE);
+        }
         //setMinimumSize(QSize(newWidth, newHeight)); // Resize image
         //parentWidget()->setMinimumSize( this->size() ); // Resize Widget
-        resize(QSize(newWidth, newHeight));
 
 
         update();
     }
-    else if(width() < image.width()) // Set the scribble area's minimum size to be equal to the image size
+    else if(width() < image.width())
     {
-        setMinimumWidth(image.width());
+
+        setMinimumWidth(newWidth+2*QD::BORDER_SIZE);
+        //setGeometry(QRect(QPoint(0,0), QSize(image.width(), height())));
+        //resizeImage(&image, QSize(image.width()-2*QD::BORDER_SIZE, height()-2*QD::BORDER_SIZE));
+        //resizeScribbleArea(QSize(image.width()-2*QD::BORDER_SIZE, height()-2*QD::BORDER_SIZE));
         update();
     }
     else if(height() < image.height())
     {
-        setMinimumHeight(image.height());
+        setMinimumHeight(newHeight+2*QD::BORDER_SIZE);
+        //setGeometry(QRect(QPoint(0,0), QSize(width(), image.height())));
+        //resizeImage(&image, QSize(width()-2*QD::BORDER_SIZE, image.height()-2*QD::BORDER_SIZE));
+        //resizeScribbleArea(QSize(width()-2*QD::BORDER_SIZE, image.height()-2*QD::BORDER_SIZE));
         update();
     }
+    resizeImage(&image, QSize(newWidth, newHeight));
+    resizeScribbleArea(QSize(newWidth, newHeight));
     QWidget::resizeEvent(event);
 }
 
@@ -254,9 +293,8 @@ void ScribbleArea::drawLineTo(const QPoint &endPoint)
     painter.drawLine(lastPoint, endPoint);
     modified = true;
 
-    //int rad = (myPenWidth / 2) + 2;
-    //update( QRect(lastPoint, endPoint).normalized().adjusted(-rad, -rad, +rad, +rad) );
-    update();
+    int rad = (pen->width() / 2) + 2;
+    update( QRect(lastPoint, endPoint).normalized().adjusted(-rad, -rad, +rad, +rad) );
     lastPoint = endPoint;
 }
 
@@ -291,7 +329,7 @@ void ScribbleArea::resizeImage(QImage *image, const QSize &newSize)
 
     QPainter painter(&newImage);
     painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    painter.drawImage(QPoint(0,0), *image);
+    painter.drawImage(QPoint(0-QD::BORDER_SIZE, 0-QD::BORDER_SIZE), *image);
 
     *image = newImage;
 }
