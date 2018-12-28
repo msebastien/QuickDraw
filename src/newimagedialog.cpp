@@ -85,7 +85,7 @@ void NewImageDialog::updateWidthValue(){
 }
 
 void NewImageDialog::setImageBackground(QString background){
-    if(background == "White") m_transparentBackground = false;
+    if(background == tr("White")) m_transparentBackground = false;
     else m_transparentBackground = true;
 }
 

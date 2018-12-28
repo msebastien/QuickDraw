@@ -128,12 +128,12 @@ void ScribbleArea::print()
     {
         QPainter painter(&printer);
         QRect rect = painter.viewport(); // Rectangle defining the area of the painter
-        QSize size = image.size(); // Image size
+        QSize size = m_image.size(); // Image size
         size.scale(rect.size(), Qt::KeepAspectRatio); // Scaling the image for the rectangle (sheet of paper)
 
         painter.setViewport(rect.x(), rect.y(), size.width(), size.height());
-        painter.setWindow(image.rect());
-        painter.drawImage(0, 0, image);
+        painter.setWindow(m_image.rect());
+        painter.drawImage(0, 0, m_image);
     }
 #endif //QT_CONFIG(printdialog)
 }

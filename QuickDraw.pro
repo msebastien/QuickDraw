@@ -19,3 +19,7 @@ SOURCES += \
 
 FORMS += \
     ui/forms/newimagedialog.ui
+
+TRANSLATIONS += \
+    translations/quickdraw_fr.ts
+
