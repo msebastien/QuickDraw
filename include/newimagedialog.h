@@ -1,9 +1,8 @@
 #ifndef NEWIMAGEDIALOG_H
 #define NEWIMAGEDIALOG_H
 
-#include <QObject>
 #include <QDialog>
-//#include <QSpinBox>
+#include "include/mainwindow.h"
 
 namespace Ui {
     class NewImageDialog;
@@ -15,16 +14,20 @@ class NewImageDialog : public QDialog
 
     private:
         Ui::NewImageDialog *ui;
+        MainWindow* m_parent;
         int m_imageWidth;
         int m_imageHeight;
         double m_aspectRatio;
-        bool m_lockAspectRatio;
+        bool m_aspectRatioLocked;
+
+        bool m_transparentBackground;
+
 
     public:
         explicit NewImageDialog(QWidget *parent = nullptr);
         ~NewImageDialog();
 
-    public slots:
+    private slots:
         void setImageWidth(int width);
         void setImageHeight(int height);
         void lockAspectRatio(int checkBoxState);
@@ -35,6 +38,9 @@ class NewImageDialog : public QDialog
 
         void updateHeightValue();
         void updateWidthValue();
+
+        void setImageBackground(QString background);
+        void createImage();
 };
 
 #endif // NEWIMAGEDIALOG_H

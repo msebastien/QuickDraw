@@ -27,29 +27,31 @@ class ScribbleArea : public QWidget
         void eraseTo(const QPoint &endPoint);
         void resizeImage(QImage *image, const QSize &newSize);
 
-        bool modified; // indicated if the image has been modified
-        bool scribbling; // indicates if the user is currently drawing
+        bool modified; // indicate if the image has been modified
+        bool scribbling; // indicate if the user is currently drawing
         bool saved;
         bool imageOpened;
 
         double scaleFactor;
         QString *filePath;
         QPen *pen;
+
         QImage image;
+
         QPoint lastPoint; // monitor constant changes of our mouse cursor
         QD::Mode selectedMode;
         QRubberBand *rubberBand;
-        QWidget * background;
 
     public:
         explicit ScribbleArea(QPen *pen, QD::Mode mode = QD::DRAW, QWidget *parent = nullptr);
-        void resizeScribbleArea(QSize const& size);
+        void createImage(QSize const& size, bool isBackgroundTransparent);
         bool openImage(const QString &fileName);
         bool saveImage(const QString &fileName, const char *fileFormat);
         void clearImage();
         void print();
         bool isModified() const {return modified;}
         bool isSaved() const {return saved;}
+        void resizeScribbleArea(QSize const& size);
         QString* getFilePath();
 
         void setMode(QD::Mode mode);

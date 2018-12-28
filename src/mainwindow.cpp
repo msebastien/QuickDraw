@@ -39,18 +39,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(this, SIGNAL(fileSaved(QString const&)), this, SLOT(updateTabTitle(QString const&)));
 }
 
-QWidget* MainWindow::createTab()
+// When creating a new image
+QWidget* MainWindow::createTab(int width, int height, bool isBackgroundTransparent)
 {
     QWidget *tab = new QWidget;
 
     ScribbleArea *scribbleArea = new ScribbleArea(pen, mode);
+    scribbleArea->createImage(QSize(width, height), isBackgroundTransparent);
+
     QVBoxLayout *tabLayout = new QVBoxLayout;
     tabLayout->setContentsMargins(0, 0, 0, 0);
 
     // ViewPort Area
     QWidget *area = new QWidget;
     QVBoxLayout *areaLayout = new QVBoxLayout;
-    areaLayout->setContentsMargins(QD::BORDER_SIZE, QD::BORDER_SIZE, 0, 0);
+    areaLayout->setContentsMargins(QD::BORDER_SIZE, QD::BORDER_SIZE, QD::BORDER_SIZE, QD::BORDER_SIZE);
     areaLayout->addWidget(scribbleArea);
     area->setLayout(areaLayout);
     area->setAttribute(Qt::WA_StaticContents);
@@ -68,7 +71,7 @@ QWidget* MainWindow::createTab()
 
     return tab;
 }
-
+// When opening an existing image
 QWidget* MainWindow::createTab(QString const& fileName)
 {
     QWidget *tab = new QWidget;
@@ -102,6 +105,10 @@ QWidget* MainWindow::createTab(QString const& fileName)
     return tab;
 }
 
+QTabWidget* MainWindow::getTabWidget(){
+    return tabs;
+}
+
 ScribbleArea* MainWindow::currentScribbleArea()
 {
     return tabs->currentWidget()->findChild<QScrollArea *>()->findChild<ScribbleArea *>();
@@ -128,7 +135,7 @@ bool MainWindow::mayBeSave()
     if(currentScribbleArea()->isModified())
     {
         QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(this, APP_NAME,
+        ret = QMessageBox::warning(this, tr("Warning"),
                                    tr("The image has been modified.\n"
                                       "Do you want to save your changes ?"),
                                    QMessageBox::Save | QMessageBox::Discard |
@@ -188,7 +195,7 @@ bool MainWindow::saveAsFile(QByteArray const& fileFormat)
         emit fileSaved(fileName);
         ret = currentScribbleArea()->saveImage(fileName, fileFormat.constData());
     }else{ // If the format is different than previously when saved
-        QMessageBox::warning(this, tr("Warning") + " - " + APP_NAME, tr("The file format has been <b>modified</b>.\n Your image was previously saved in the ")
+        QMessageBox::warning(this, tr("Warning"), tr("The file format has been <b>modified</b>.\n Your image was previously saved in the ")
                              + "<b>" + fileName.section('.', 1, 1).toUpper() + "</b>" + tr(" format.\n A new file will be created."));
         fileName.remove(fileName.section('.',1,1));
         fileName += fileFormat;
@@ -210,7 +217,7 @@ void MainWindow::createNewImage()
 {
     NewImageDialog newImage(this);
     newImage.exec();
-    tabs->addTab(createTab(), tr("Untitled"));
+    //tabs->addTab(createTab(), tr("Untitled"));
 }
 
 void MainWindow::open()
@@ -239,7 +246,7 @@ void MainWindow::save()
              formatList->append(format);
         }
 
-        QString selectedFormat = QInputDialog::getItem(this, tr("Format selector") + " - " + APP_NAME,
+        QString selectedFormat = QInputDialog::getItem(this, tr("Format selector"),
                                                        "This file has not been opened or previously saved.\n"
                                                        "Choose the file format to save the image.",
                                                        *formatList, 0, false, &ok);
@@ -274,7 +281,7 @@ void MainWindow::changePenColor()
 void MainWindow::changePenWidth()
 {
     bool ok;
-    int newWidth = QInputDialog::getInt(this, APP_NAME + tr(" - Pen Width"),
+    int newWidth = QInputDialog::getInt(this, tr("Pen Width"),
                                         tr("Select pen width :"),
                                         pen->width(),
                                         1, 50, 1, &ok);
