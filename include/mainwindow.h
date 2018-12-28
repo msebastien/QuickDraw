@@ -115,7 +115,7 @@ class MainWindow : public QMainWindow
         QWidget *createTab(QString const& fileName); // Create a new tab with an existing image
         ScribbleArea* currentScribbleArea();
         ScribbleArea* indexedScribbleArea(int index);
-        QTabWidget* getTabWidget();
+        QTabWidget* tabWidget();
 
 
 };

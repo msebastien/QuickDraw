@@ -106,7 +106,7 @@ QWidget* MainWindow::createTab(QString const& fileName)
     return tab;
 }
 
-QTabWidget* MainWindow::getTabWidget(){
+QTabWidget* MainWindow::tabWidget(){
     return tabs;
 }
 

@@ -14,12 +14,12 @@ class NewImageDialog : public QDialog
 
     private:
         Ui::NewImageDialog *ui;
+
         MainWindow* m_parent;
         int m_imageWidth;
         int m_imageHeight;
         double m_aspectRatio;
         bool m_aspectRatioLocked;
-
         bool m_transparentBackground;
 
 

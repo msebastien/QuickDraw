@@ -73,7 +73,7 @@ void NewImageDialog::computeNewHeight(){
 
 // Compute new width based on the aspect ratio if the user modifies height
 void NewImageDialog::computeNewWidth(){
-    if(m_aspectRatioLocked) m_imageWidth = (int)( (double)m_imageHeight * m_aspectRatio );
+    if(m_aspectRatioLocked) m_imageWidth = (int)round( (double)m_imageHeight * m_aspectRatio );
 }
 
 void NewImageDialog::updateHeightValue(){
@@ -90,6 +90,6 @@ void NewImageDialog::setImageBackground(QString background){
 }
 
 void NewImageDialog::createImage(){
-    m_parent->getTabWidget()->addTab(m_parent->createTab(m_imageWidth, m_imageHeight, m_transparentBackground), tr("Untitled"));
+    m_parent->tabWidget()->addTab(m_parent->createTab(m_imageWidth, m_imageHeight, m_transparentBackground), tr("Untitled"));
 }
 

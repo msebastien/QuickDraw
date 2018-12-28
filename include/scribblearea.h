@@ -25,44 +25,39 @@ class ScribbleArea : public QWidget
     private:
         void drawLineTo(const QPoint &endPoint);
         void eraseTo(const QPoint &endPoint);
-        void resizeImage(QImage *image, const QSize &newSize);
+        void resizeImage(QImage *m_image, const QSize &newSize);
 
-        bool modified; // indicate if the image has been modified
-        bool scribbling; // indicate if the user is currently drawing
-        bool saved;
-        bool imageOpened;
+        bool m_modified; // indicate if the image has been modified
+        bool m_scribbling; // indicate if the user is currently drawing
+        bool m_saved;
+        bool m_imageOpened;
         bool m_isTransparent;
 
-        double scaleFactor;
-        QString *filePath;
-        QPen *pen;
+        double m_scaleFactor;
+        QString *m_filePath;
+        QPen *m_pen;
 
-        QImage image;
+        QImage m_image;
 
-        QPoint lastPoint; // monitor constant changes of our mouse cursor
-        QD::Mode selectedMode;
-        QRubberBand *rubberBand;
+        QPoint m_lastPoint; // monitor constant changes of our mouse cursor
+        QD::Mode m_selectedMode;
+        QRubberBand *m_rubberBand;
 
     public:
-        explicit ScribbleArea(QPen *pen, QD::Mode mode = QD::DRAW, QWidget *parent = nullptr);
+        explicit ScribbleArea(QPen *m_pen, QD::Mode mode = QD::DRAW, QWidget *parent = nullptr);
         void createImage(QSize const& size, bool isBackgroundTransparent);
         bool openImage(const QString &fileName);
         bool saveImage(const QString &fileName, const char *fileFormat);
         void clearImage();
         void print();
-        bool isModified() const {return modified;}
-        bool isSaved() const {return saved;}
+        bool isModified() const {return m_modified;}
+        bool isSaved() const {return m_saved;}
         void resizeScribbleArea(QSize const& size);
         QString* getFilePath();
 
         void setMode(QD::Mode mode);
         QD::Mode mode();
 
-        // Pen
-        //void setPenColor(const QColor &newColor);
-        //void setPenWidth(int newWidth);
-        //QColor penColor() const {return myPenColor;}
-        //int penWidth() const {return myPenWidth;}
     protected:
         void mousePressEvent(QMouseEvent *event) override;
         void mouseMoveEvent(QMouseEvent *event) override;
