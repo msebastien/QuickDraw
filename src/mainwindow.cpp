@@ -50,7 +50,7 @@ QWidget* MainWindow::createTab(int width, int height, bool isBackgroundTranspare
     QVBoxLayout *tabLayout = new QVBoxLayout;
     tabLayout->setContentsMargins(0, 0, 0, 0);
 
-    // ViewPort Area
+    /*--ViewPort Area--*/
     QWidget *area = new QWidget;
     QVBoxLayout *areaLayout = new QVBoxLayout;
     areaLayout->setContentsMargins(QD::BORDER_SIZE, QD::BORDER_SIZE, QD::BORDER_SIZE, QD::BORDER_SIZE);
@@ -65,6 +65,7 @@ QWidget* MainWindow::createTab(int width, int height, bool isBackgroundTranspare
     scrollArea->setAlignment(Qt::AlignCenter);
     //scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setWidget(area);
+    /*--End ViewPort Area--*/
 
     tabLayout->addWidget(scrollArea);
     tab->setLayout(tabLayout);
@@ -82,10 +83,10 @@ QWidget* MainWindow::createTab(QString const& fileName)
     QVBoxLayout *tabLayout = new QVBoxLayout;
     tabLayout->setContentsMargins(0, 0, 0, 0);
 
-    // ViewPort Area
+    /*--ViewPort Area--*/
     QWidget *area = new QWidget;
     QVBoxLayout *areaLayout = new QVBoxLayout;
-    areaLayout->setContentsMargins(QD::BORDER_SIZE, QD::BORDER_SIZE, 0, 0);
+    areaLayout->setContentsMargins(QD::BORDER_SIZE, QD::BORDER_SIZE, QD::BORDER_SIZE, QD::BORDER_SIZE);
     areaLayout->addWidget(scribbleArea);
     area->setLayout(areaLayout);
     area->setAttribute(Qt::WA_StaticContents);
@@ -97,7 +98,7 @@ QWidget* MainWindow::createTab(QString const& fileName)
     scrollArea->setAlignment(Qt::AlignCenter);
     //scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setWidget(area);
-
+    /*--End ViewPort Area--*/
 
     tabLayout->addWidget(scrollArea);
     tab->setLayout(tabLayout);
@@ -215,9 +216,8 @@ bool MainWindow::saveAsFile(QByteArray const& fileFormat)
 //------------------------------------------------------------------------------
 void MainWindow::createNewImage()
 {
-    NewImageDialog newImage(this);
-    newImage.exec();
-    //tabs->addTab(createTab(), tr("Untitled"));
+    NewImageDialog newImageDialog(this);
+    newImageDialog.exec();
 }
 
 void MainWindow::open()

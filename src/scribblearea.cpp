@@ -11,19 +11,20 @@ ScribbleArea::ScribbleArea(QPen *penTool, QD::Mode mode, QWidget *parent) : QWid
     modified = false;
     scribbling = false;
     saved = false;
+    m_isTransparent = false;
 
     pen = penTool;
     filePath = new QString();
 
     // Set Rubber band style
     rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-    rubberBand->setWindowOpacity(0.0);
+    rubberBand->setWindowOpacity(0.0); //TODO : Test it
 
     imageOpened = false;
 
     //--- Create a new default image (1px by 1px)---
     QImage newImage(QSize(1,1), QImage::Format_ARGB32);
-    newImage.fill(QColor(255, 255, 255));
+    newImage.fill(QColor(255,255,255));
     image = newImage;
 
     // Set default mode
@@ -36,8 +37,12 @@ ScribbleArea::ScribbleArea(QPen *penTool, QD::Mode mode, QWidget *parent) : QWid
 void ScribbleArea::createImage(QSize const& size, bool isBackgroundTransparent){
     QImage newImage(size, QImage::Format_ARGB32);
 
-    if(!isBackgroundTransparent) newImage.fill(QColor(255, 255, 255));
-    else newImage.fill(QColor(255,255,255,0));
+    if(!isBackgroundTransparent) {
+        newImage.fill(QColor(255,255,255));
+    }
+    else {
+        newImage.fill(QColor(255,255,255,0)); m_isTransparent = true;
+    }
 
     image = newImage;
 }
@@ -81,7 +86,8 @@ bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
 
 void ScribbleArea::clearImage()
 {
-    image.fill(QColor(255,255,255));
+    if(m_isTransparent) image.fill(QColor(255,255,255,0));
+    else image.fill(QColor(255,255,255));
     modified = true;
     update();
 }
@@ -104,7 +110,7 @@ QD::Mode ScribbleArea::mode()
 
 void ScribbleArea::resizeScribbleArea(QSize const& size)
 {
-    setMinimumSize(size); // Resize image
+    setMinimumSize(size); // Resize image/drawing area
     parentWidget()->setMaximumSize( QSize(size.width()+2*QD::BORDER_SIZE, size.height()+2*QD::BORDER_SIZE) ); // Resize Widget
 }
 
@@ -281,10 +287,8 @@ void ScribbleArea::eraseTo(const QPoint &endPoint)
     QPainter painter(&image);
 
     painter.setRenderHint(QPainter::Antialiasing, true);
-    // Alpha : 0 (Transparent) to 255 (Opaque)
     painter.setCompositionMode(QPainter::CompositionMode_Clear);
     painter.setPen(*pen);
-
 
     painter.drawLine(lastPoint, endPoint);
     modified = true;
@@ -304,7 +308,6 @@ void ScribbleArea::resizeImage(QImage *image, const QSize &newSize)
 
     // Draw the image onto the newImage. It allows to avoid black areas
     // when resizing like with QImage::copy()
-
     QPainter painter(&newImage);
     painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
     painter.drawImage(QPoint(0, 0), *image);

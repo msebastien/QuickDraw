@@ -31,6 +31,7 @@ class ScribbleArea : public QWidget
         bool scribbling; // indicate if the user is currently drawing
         bool saved;
         bool imageOpened;
+        bool m_isTransparent;
 
         double scaleFactor;
         QString *filePath;
