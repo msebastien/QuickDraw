@@ -39,7 +39,6 @@ void ScribbleArea::createImage(QSize const& size, bool isBackgroundTransparent){
     if(!isBackgroundTransparent) newImage.fill(QColor(255, 255, 255));
     else newImage.fill(QColor(255,255,255,0));
 
-    resizeImage(&newImage, QSize(size.width()-2*QD::BORDER_SIZE, size.height()-2*QD::BORDER_SIZE));
     image = newImage;
 }
 
@@ -65,8 +64,6 @@ bool ScribbleArea::openImage(const QString &fileName)
 bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
 {
     QImage visibleImage = image;
-
-    resizeImage(&visibleImage, QSize(width()-2*QD::BORDER_SIZE, height()-2*QD::BORDER_SIZE)); // Resize image as it is the same size as the widget
 
     if (visibleImage.save(fileName, fileFormat))
     {
