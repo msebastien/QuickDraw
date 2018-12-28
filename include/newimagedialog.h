@@ -2,7 +2,7 @@
 #define NEWIMAGEDIALOG_H
 
 #include <QDialog>
-#include "include/mainwindow.h"
+#include "mainwindow.h"
 
 namespace Ui {
     class NewImageDialog;

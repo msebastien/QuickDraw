@@ -3,7 +3,7 @@ QT += core widgets svg printsupport
 
 #TARGET =
 DEPENDPATH += .
-INCLUDEPATH += .
+INCLUDEPATH += include
 
 # Input
 HEADERS += \

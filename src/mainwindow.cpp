@@ -1,7 +1,7 @@
 #include <QCoreApplication>
-#include "include/mainwindow.h"
-#include "include/scribblearea.h"
-#include "include/newimagedialog.h"
+#include "mainwindow.h"
+#include "scribblearea.h"
+#include "newimagedialog.h"
 
 #define APP_NAME "QuickDraw"
 

@@ -1,5 +1,5 @@
 #include <cmath>
-#include "include/newimagedialog.h"
+#include "newimagedialog.h"
 #include "ui_newimagedialog.h"
 
 NewImageDialog::NewImageDialog(QWidget *parent) :
