@@ -58,7 +58,7 @@ QWidget* MainWindow::createTab(int width, int height, bool isBackgroundTranspare
     area->setLayout(areaLayout);
     area->setAttribute(Qt::WA_StaticContents);
     area->setObjectName("Viewport");
-    area->setStyleSheet( QString("QWidget#Viewport {border: %1px solid black; background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;}").arg(QD::BORDER_SIZE) );
+    area->setStyleSheet( QString("QWidget#Viewport {border: %1px solid palette(shadow); background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;}").arg(QD::BORDER_SIZE) );
 
     QScrollArea *scrollArea = new QScrollArea;
     scrollArea->setWidgetResizable(true);
@@ -91,7 +91,7 @@ QWidget* MainWindow::createTab(QString const& fileName)
     area->setLayout(areaLayout);
     area->setAttribute(Qt::WA_StaticContents);
     area->setObjectName("Viewport");
-    area->setStyleSheet( QString("QWidget#Viewport {border: %1px solid black; background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;}").arg(QD::BORDER_SIZE) );
+    area->setStyleSheet( QString("QWidget#Viewport {border: %1px solid palette(shadow); background: url(ui/images/Transparency10.png); background-repeat: repeat-xy; background-attachment: fixed;}").arg(QD::BORDER_SIZE) );
 
     QScrollArea *scrollArea = new QScrollArea;
     scrollArea->setWidgetResizable(true);

@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>New Image</string>
   </property>
-  <property name="windowIcon">
-   <iconset theme="multimedia-photo-viewer">
-    <normaloff>.</normaloff>.</iconset>
-  </property>
   <property name="locale">
    <locale language="English" country="UnitedStates"/>
   </property>
