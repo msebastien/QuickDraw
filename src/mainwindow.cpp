@@ -221,14 +221,11 @@ void MainWindow::createNewImage()
 }
 
 void MainWindow::open()
-{
-    if(mayBeSave())
+{ 
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::currentPath());
+    if(!fileName.isEmpty())
     {
-        QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::currentPath());
-        if(!fileName.isEmpty())
-        {
-            tabs->addTab(createTab(fileName), "*" + fileName.section('/',-1, -1));
-        }
+        tabs->addTab(createTab(fileName), "*" + fileName.section('/',-1, -1));
     }
 }
 

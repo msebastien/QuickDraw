@@ -13,6 +13,7 @@ NewImageDialog::NewImageDialog(QWidget *parent) :
     m_imageHeight = ui->heightSpinBox->value();
     m_aspectRatio = (double)m_imageWidth / (double)m_imageHeight;
     m_aspectRatioLocked = ui->aspectRatioCheckBox->isChecked();
+    m_transparentBackground = !(ui->backgroundComboBox->currentText() == tr("White"));
 
     connect(ui->widthSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setImageWidth(int)));
     connect(ui->heightSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setImageHeight(int)));

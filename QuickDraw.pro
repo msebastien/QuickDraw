@@ -2,7 +2,7 @@ TEMPLATE = app
 QT += core widgets svg printsupport
 
 #TARGET =
-DEPENDPATH += .
+#DEPENDPATH += .
 INCLUDEPATH += include
 
 # Input

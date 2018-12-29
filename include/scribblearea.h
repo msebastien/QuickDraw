@@ -25,7 +25,8 @@ class ScribbleArea : public QWidget
     private:
         void drawLineTo(const QPoint &endPoint);
         void eraseTo(const QPoint &endPoint);
-        void resizeImage(QImage *m_image, const QSize &newSize);
+        QImage addAlphaChannel(QImage const& image);
+        void resizeImage(QImage *m_image, const QSize &newSize); // Deprecated
 
         bool m_modified; // indicate if the image has been modified
         bool m_scribbling; // indicate if the user is currently drawing
@@ -39,7 +40,7 @@ class ScribbleArea : public QWidget
 
         QImage m_image;
 
-        QPoint m_lastPoint; // monitor constant changes of our mouse cursor
+        QPoint m_lastPoint; // monitor constant changes of the mouse cursor
         QD::Mode m_selectedMode;
         QRubberBand *m_rubberBand;
 

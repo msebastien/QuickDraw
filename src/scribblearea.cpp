@@ -34,14 +34,16 @@ ScribbleArea::ScribbleArea(QPen *penTool, QD::Mode mode, QWidget *parent) : QWid
 //---------------------------------------------------------------------------------
 //  PUBLIC METHODS
 //----------------------------------------------------------------------------------
-void ScribbleArea::createImage(QSize const& size, bool isBackgroundTransparent){
+void ScribbleArea::createImage(QSize const& size, bool isBackgroundTransparent)
+{
     QImage newImage(size, QImage::Format_ARGB32);
 
     if(!isBackgroundTransparent) {
         newImage.fill(QColor(255,255,255));
     }
     else {
-        newImage.fill(QColor(255,255,255,0)); m_isTransparent = true;
+        newImage.fill(QColor(255,255,255,0));
+        m_isTransparent = true;
     }
 
     m_image = newImage;
@@ -50,22 +52,22 @@ void ScribbleArea::createImage(QSize const& size, bool isBackgroundTransparent){
 bool ScribbleArea::openImage(const QString &fileName)
 {
     QImage loadedImage;
+
     if(!loadedImage.load(fileName))
     {
         return false;
     }
 
-    QSize newSize = loadedImage.size().expandedTo( QSize(width()-2*QD::BORDER_SIZE, height()-2*QD::BORDER_SIZE) );
-    resizeImage(&loadedImage, newSize);
-
-    m_image = loadedImage;
-    m_modified = false;
+    m_image = addAlphaChannel(loadedImage);
+    m_isTransparent = true;
     m_filePath = new QString(fileName);
     m_imageOpened = true;
+
     update();
     return true;
 }
 
+// TODO: Check if the format supports alpha channel. Otherwise, we must replace black pixels with white pixels.
 bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
 {
     QImage visibleImage = m_image;
@@ -82,7 +84,6 @@ bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
         return false;
     }
 }
-
 
 void ScribbleArea::clearImage()
 {
@@ -105,7 +106,6 @@ void ScribbleArea::setMode(QD::Mode mode)
 QD::Mode ScribbleArea::mode()
 {
     return m_selectedMode;
-
 }
 
 void ScribbleArea::resizeScribbleArea(QSize const& size)
@@ -283,10 +283,11 @@ void ScribbleArea::drawLineTo(const QPoint &endPoint)
 void ScribbleArea::eraseTo(const QPoint &endPoint)
 {
     QPainter painter(&m_image);
+    QPen eraser(*m_pen);
 
+    painter.setPen(eraser);
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setCompositionMode(QPainter::CompositionMode_Clear);
-    painter.setPen(*m_pen);
 
     painter.drawLine(m_lastPoint, endPoint);
     m_modified = true;
@@ -295,6 +296,22 @@ void ScribbleArea::eraseTo(const QPoint &endPoint)
     m_lastPoint = endPoint;
 }
 
+// Copy an image into a new image with alpha channel
+QImage ScribbleArea::addAlphaChannel(QImage const& image)
+{
+    // Create a new white image
+    QImage newImage(image.size(), QImage::Format_ARGB32);
+    newImage.fill(QColor(255, 255, 255));
+
+    // Draw the image onto the newImage. It allows to avoid black areas
+    QPainter painter(&newImage);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    painter.drawImage(QPoint(0, 0), image);
+
+    return newImage;
+}
+
+// DEPRECATED
 void ScribbleArea::resizeImage(QImage *image, const QSize &newSize)
 {
     if(image->size() == newSize)
@@ -312,5 +329,3 @@ void ScribbleArea::resizeImage(QImage *image, const QSize &newSize)
 
     *image = newImage;
 }
-
-
