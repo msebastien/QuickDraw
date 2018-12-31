@@ -32,9 +32,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 
     // Definition of some window's properties
-    setMinimumSize(800, 600);
+    setMinimumSize(1280, 720);
     setWindowIcon( QIcon("ui/icons/mimes/128/image-x-generic.svg") );
-    setWindowTitle(APP_NAME);
+    setWindowTitle( QCoreApplication::applicationName() );
 
     connect(this, SIGNAL(fileSaved(QString const&)), this, SLOT(updateTabTitle(QString const&)));
 }
@@ -290,7 +290,7 @@ void MainWindow::changePenWidth()
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About ") + APP_NAME,
+    QMessageBox::about(this, tr("About ") + QCoreApplication::applicationName(),
                        tr("<p><b>Quickdraw</b> is a simple painting program made by "
                           "<b>Sébastien Maes</b></p>"));
 }
@@ -413,34 +413,39 @@ void MainWindow::createActions()
 
     selectModeAction = new QAction(tr("Select Mode"), this);
     selectModeAction->setCheckable(true);
-    selectModeAction->setShortcut(tr("Ctrl+W"));
+    selectModeAction->setShortcut(tr("Shift+W"));
     selectModeAction->setIcon(QIcon( QIcon::fromTheme("tool-pointer", QIcon("ui/icons/categories/24/preferences-desktop-accessibility-pointing.svg")) ));
     connect(selectModeAction, SIGNAL(triggered()), this, SLOT(selectMode()));
 
     drawModeAction = new QAction(tr("Draw Mode"), this);
     drawModeAction->setCheckable(true);
     drawModeAction->setChecked(true);
-    drawModeAction->setShortcut(tr("Ctrl+D"));
+    drawModeAction->setShortcut(tr("Shift+D"));
     drawModeAction->setIcon(QIcon( QIcon::fromTheme("draw-freehand", QIcon("ui/icons/actions/24/draw-freehand.svg")) ));
     connect(drawModeAction, SIGNAL(triggered()), this, SLOT(drawMode()));
 
     fillModeAction = new QAction(tr("Fill Mode"), this);
     fillModeAction->setCheckable(true);
-    fillModeAction->setShortcut(tr("Ctrl+F"));
+    fillModeAction->setShortcut(tr("Shift+F"));
     fillModeAction->setIcon(QIcon( QIcon::fromTheme("color-fill", QIcon("ui/icons/actions/24/color-fill.svg")) ));
     connect(fillModeAction, SIGNAL(triggered()), this, SLOT(fillMode()));
 
     eraseModeAction = new QAction(tr("Erase Mode"), this);
     eraseModeAction->setCheckable(true);
-    eraseModeAction->setShortcut(tr("Ctrl+E"));
+    eraseModeAction->setShortcut(tr("Shift+E"));
     eraseModeAction->setIcon(QIcon( QIcon::fromTheme("draw-eraser", QIcon("ui/icons/actions/24/draw-eraser.svg")) ));
     connect(eraseModeAction, SIGNAL(triggered()), this, SLOT(eraseMode()));
+
+    zoomModeAction = new QAction(tr("Zoom Mode"), this);
+    zoomModeAction->setCheckable(true);
+    zoomModeAction->setShortcut(tr("Shift+Z"));
+    zoomModeAction->setIcon(QIcon( QIcon::fromTheme("edit-find", QIcon("ui/icons/actions/24/edit-find.svg")) ));
 
     modeActionGroup->addAction(selectModeAction);
     modeActionGroup->addAction(drawModeAction);
     modeActionGroup->addAction(fillModeAction);
     modeActionGroup->addAction(eraseModeAction);
-
+    modeActionGroup->addAction(zoomModeAction);
 }
 
 void MainWindow::createMenus()
@@ -497,6 +502,7 @@ void MainWindow::createToolBox()
     toolBox->addAction(drawModeAction);
     toolBox->addAction(fillModeAction);
     toolBox->addAction(eraseModeAction);
+    toolBox->addAction(zoomModeAction);
     toolBox->addSeparator();
     toolBox->addAction(clearScreenAction);
 }

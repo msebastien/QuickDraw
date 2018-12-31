@@ -111,7 +111,7 @@ class MainWindow : public QMainWindow
 
     public:
         explicit MainWindow(QWidget *parent = nullptr);
-        QWidget *createTab(int width = 600, int height = 450, bool isBackgroundTransparent = false); // Create a new tab with a new blank image
+        QWidget *createTab(int width = 640, int height = 480, bool isBackgroundTransparent = false); // Create a new tab with a new blank image
         QWidget *createTab(QString const& fileName); // Create a new tab with an existing image
         ScribbleArea* currentScribbleArea();
         ScribbleArea* indexedScribbleArea(int index);

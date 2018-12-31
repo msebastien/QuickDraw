@@ -53,11 +53,13 @@ class ScribbleArea : public QWidget
         void print();
         bool isModified() const {return m_modified;}
         bool isSaved() const {return m_saved;}
-        void resizeScribbleArea(QSize const& size);
         QString* getFilePath();
 
+        void scale(double factor);
+        double scaleFactor() const;
+
         void setMode(QD::Mode mode);
-        QD::Mode mode();
+        QD::Mode mode() const;
 
     protected:
         void mousePressEvent(QMouseEvent *event) override;

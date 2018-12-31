@@ -12,15 +12,15 @@ ScribbleArea::ScribbleArea(QPen *penTool, QD::Mode mode, QWidget *parent) : QWid
     m_scribbling = false;
     m_saved = false;
     m_isTransparent = false;
+    m_imageOpened = false;
 
+    m_scaleFactor = 1.0;
     m_pen = penTool;
     m_filePath = new QString();
 
     // Set Rubber band style
     m_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-    m_rubberBand->setWindowOpacity(0.0); //TODO : Test it
-
-    m_imageOpened = false;
+    m_rubberBand->setWindowOpacity(0.0); //TODO : Test it  
 
     //--- Create a new default image (1px by 1px)---
     QImage newImage(QSize(1,1), QImage::Format_ARGB32);
@@ -103,20 +103,30 @@ void ScribbleArea::setMode(QD::Mode mode)
     m_selectedMode = mode;
 }
 
-QD::Mode ScribbleArea::mode()
+QD::Mode ScribbleArea::mode() const
 {
     return m_selectedMode;
 }
 
-void ScribbleArea::resizeScribbleArea(QSize const& size)
+// TODO : Manage scaling and zoom
+void ScribbleArea::scale(double factor)
 {
-    setMinimumSize(size); // Resize image/drawing area
-    parentWidget()->setMaximumSize( QSize(size.width()+2*QD::BORDER_SIZE, size.height()+2*QD::BORDER_SIZE) ); // Resize Widget
+    m_scaleFactor *= factor;
+
+    this->resize(m_scaleFactor * this->size());
+
+    //adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
+    //adjustScrollBar(scrollArea->verticalScrollBar(), factor);
+
+    //zoomInAct->setEnabled(scaleFactor < 3.0);
+    //zoomOutAct->setEnabled(scaleFactor > 0.333);
 }
 
-//---------------------------------------------------------------------------------
-//  SLOTS
-//---------------------------------------------------------------------------------
+double ScribbleArea::scaleFactor() const
+{
+    return m_scaleFactor;
+}
+
 void ScribbleArea::print()
 {
 #if QT_CONFIG(printdialog)
@@ -238,28 +248,9 @@ void ScribbleArea::paintEvent(QPaintEvent *event)
 
 void ScribbleArea::resizeEvent(QResizeEvent *event)
 {
-
-    int newWidth = qMax(width()-2*QD::BORDER_SIZE, m_image.width()-2*QD::BORDER_SIZE);
-    int newHeight = qMax(height()-2*QD::BORDER_SIZE, m_image.height()-2*QD::BORDER_SIZE);
-
-    if(width() > m_image.width() || height() > m_image.height())
-    {
-        if(m_imageOpened)
-        {
-            newWidth = qMin(width()-2*QD::BORDER_SIZE, m_image.width()-2*QD::BORDER_SIZE);
-            newHeight = qMin(height()-2*QD::BORDER_SIZE, m_image.height()-2*QD::BORDER_SIZE);
-        }
-    }
-    else if(width() < m_image.width())
-    {
-        setMinimumWidth(newWidth);
-    }
-    else if(height() < m_image.height())
-    {
-        setMinimumHeight(newHeight);
-    }
-
-    resizeScribbleArea(QSize(m_image.width(), m_image.height()));
+    // Resize scribble area and the widget with the tiled background for transparency
+    setMinimumSize( m_image.size() ); // Resize image/drawing area
+    parentWidget()->setMaximumSize( QSize(m_image.width()+2*QD::BORDER_SIZE, m_image.height()+2*QD::BORDER_SIZE) ); // Resize Widget
     update();
     QWidget::resizeEvent(event);
 }
