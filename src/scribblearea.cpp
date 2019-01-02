@@ -1,8 +1,5 @@
 ﻿#include "scribblearea.h"
 
-#define APP_NAME "QuickDraw"
-
-
 // Constructor
 ScribbleArea::ScribbleArea(QPen *penTool, QD::Mode mode, QWidget *parent) : QWidget(parent)
 {
@@ -27,6 +24,16 @@ ScribbleArea::ScribbleArea(QPen *penTool, QD::Mode mode, QWidget *parent) : QWid
     newImage.fill(QColor(255,255,255));
     m_image = newImage;
 
+    // Label/Container
+    m_pixmapContainer = new QLabel(this);
+    m_pixmapContainer->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    m_pixmapContainer->setScaledContents(true);
+
+    // Pixmap
+    QPixmap m_pixmap;
+    m_pixmap.convertFromImage(m_image);
+    m_pixmapContainer->setPixmap(m_pixmap);
+
     // Set default mode
     m_selectedMode = mode;
 }
@@ -45,8 +52,9 @@ void ScribbleArea::createImage(QSize const& size, bool isBackgroundTransparent)
         newImage.fill(QColor(255,255,255,0));
         m_isTransparent = true;
     }
-
     m_image = newImage;
+
+    updatePixmap();
 }
 
 bool ScribbleArea::openImage(const QString &fileName)
@@ -63,6 +71,7 @@ bool ScribbleArea::openImage(const QString &fileName)
     m_filePath = new QString(fileName);
     m_imageOpened = true;
 
+    updatePixmap();
     update();
     return true;
 }
@@ -242,15 +251,21 @@ void ScribbleArea::mouseReleaseEvent(QMouseEvent *event)
 void ScribbleArea::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    QRect dirtyRect = event->rect(); // Draw the rectangular area where we currently draw on
-    painter.drawImage(dirtyRect, m_image, dirtyRect); // Draw the rectangle where the image needs to be updated
+    QRect updatedRect = event->rect(); // Draw the rectangular area where we currently draw on
+    //painter.drawPixmap(updatedRect, m_pixmap, updatedRect); // Draw the rectangle where the image needs to be updated
+
+    m_pixmap.convertFromImage(m_image);
+    m_pixmapContainer->setPixmap(m_pixmap);
+    m_pixmapContainer->update(updatedRect);
 }
 
 void ScribbleArea::resizeEvent(QResizeEvent *event)
 {
     // Resize scribble area and the widget with the tiled background for transparency
-    setMinimumSize( m_image.size() ); // Resize image/drawing area
-    parentWidget()->setMaximumSize( QSize(m_image.width()+2*QD::BORDER_SIZE, m_image.height()+2*QD::BORDER_SIZE) ); // Resize Widget
+    setMinimumSize( m_pixmap.size() ); // Resize drawing area
+    parentWidget()->setMaximumSize( QSize(m_pixmap.width()+2*QD::BORDER_SIZE, m_pixmap.height()+2*QD::BORDER_SIZE) ); // Resize parent Widget
+
+    m_pixmapContainer->resize(m_pixmap.size()); // Resize the image container
     update();
     QWidget::resizeEvent(event);
 }
@@ -258,6 +273,10 @@ void ScribbleArea::resizeEvent(QResizeEvent *event)
 //----------------------------------------------------------------------------------
 //  PRIVATE METHODS
 //----------------------------------------------------------------------------------
+void ScribbleArea::updatePixmap(){
+    m_pixmap.convertFromImage(m_image);
+}
+
 void ScribbleArea::drawLineTo(const QPoint &endPoint)
 {
     QPainter painter(&m_image);

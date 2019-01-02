@@ -3,8 +3,6 @@
 #include "scribblearea.h"
 #include "newimagedialog.h"
 
-#define APP_NAME "QuickDraw"
-
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     createActions();
@@ -183,7 +181,7 @@ bool MainWindow::saveAsFile(QByteArray const& fileFormat)
     }
     else // We choose the location and the file name to save the image
     {
-        QString initialPath = QDir::currentPath() + tr("/untitled.") + fileFormat;
+        QString initialPath = QDir::homePath() + tr("/untitled.") + fileFormat;
         fileName = QFileDialog::getSaveFileName(this, tr("Save As"), initialPath,
                                                         tr("%1 Files (*.%2);; All Files(*)")
                                                         .arg(QString::fromLatin1(fileFormat.toUpper()))
@@ -222,7 +220,7 @@ void MainWindow::createNewImage()
 
 void MainWindow::open()
 { 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::currentPath());
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::homePath());
     if(!fileName.isEmpty())
     {
         tabs->addTab(createTab(fileName), "*" + fileName.section('/',-1, -1));
