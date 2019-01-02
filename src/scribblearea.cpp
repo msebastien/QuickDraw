@@ -261,11 +261,12 @@ void ScribbleArea::paintEvent(QPaintEvent *event)
 
 void ScribbleArea::resizeEvent(QResizeEvent *event)
 {
-    // Resize scribble area and the widget with the tiled background for transparency
-    setMinimumSize( m_pixmap.size() ); // Resize drawing area
-    parentWidget()->setMaximumSize( QSize(m_pixmap.width()+2*QD::BORDER_SIZE, m_pixmap.height()+2*QD::BORDER_SIZE) ); // Resize parent Widget
-
     m_pixmapContainer->resize(m_pixmap.size()); // Resize the image container
+
+    // Resize scribble area and the widget with the tiled background for transparency
+    setMinimumSize( m_pixmapContainer->size() ); // Resize drawing area
+    parentWidget()->setMaximumSize( QSize(m_pixmapContainer->width()+2*QD::BORDER_SIZE, m_pixmapContainer->height()+2*QD::BORDER_SIZE) ); // Resize parent Widget
+
     update();
     QWidget::resizeEvent(event);
 }
