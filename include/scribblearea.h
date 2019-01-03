@@ -27,6 +27,7 @@ class ScribbleArea : public QWidget
         void eraseTo(const QPoint &endPoint);
         QImage addAlphaChannel(QImage const& image);
         void updatePixmap(); // Update pixmap with image changes
+        void scaleImage(double factor); // Scale the actual image (QImage)
         void resizeImage(QImage *m_image, const QSize &newSize); // Deprecated
 
         bool m_modified; // indicate if the image has been modified
@@ -38,13 +39,14 @@ class ScribbleArea : public QWidget
         QString *m_filePath;
         QPen *m_pen;
 
-        // Image processing
+        // Image processing only
         QImage m_image;
+        QSize m_initialImageSize;
 
         // QImage->QPixmap for display
         QLabel *m_pixmapContainer;
         QPixmap m_pixmap;
-        double m_scaleFactor;
+        double m_displayScaleFactor;
 
         QPoint m_lastPoint; // monitor constant changes of the mouse cursor
         QD::Mode m_selectedMode;

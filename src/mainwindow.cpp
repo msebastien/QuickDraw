@@ -181,7 +181,7 @@ bool MainWindow::saveAsFile(QByteArray const& fileFormat)
     }
     else // We choose the location and the file name to save the image
     {
-        QString initialPath = QDir::homePath() + tr("/untitled.") + fileFormat;
+        QString initialPath = QDir::homePath() + "/" + tr("untitled") + "." + fileFormat;
         fileName = QFileDialog::getSaveFileName(this, tr("Save As"), initialPath,
                                                         tr("%1 Files (*.%2);; All Files(*)")
                                                         .arg(QString::fromLatin1(fileFormat.toUpper()))
@@ -303,6 +303,7 @@ void MainWindow::closeIndexedTab(int index)
     if(mayBeSave()){
         if(tabs->count() > 1)
         {
+            // TO DO : Deallocate correctly memory. This does not work.
             tabs->widget(index)->findChild<QScrollArea *>()->findChild<ScribbleArea *>()->close();
             tabs->widget(index)->findChild<QScrollArea *>()->close();
             tabs->widget(index)->findChild<QWidget*>()->close();
