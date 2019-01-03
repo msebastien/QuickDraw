@@ -27,7 +27,7 @@ class ScribbleArea : public QWidget
         void eraseTo(const QPoint &endPoint);
         QImage addAlphaChannel(QImage const& image);
         void updatePixmap(); // Update pixmap with image changes
-        void scaleImage(double factor); // Scale the actual image (QImage)
+        QImage scaleImage(double factor); // Scale the actual image (QImage)
         void resizeImage(QImage *m_image, const QSize &newSize); // Deprecated
 
         bool m_modified; // indicate if the image has been modified
