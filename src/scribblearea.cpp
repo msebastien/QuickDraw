@@ -59,7 +59,7 @@ void ScribbleArea::createImage(QSize const& size, bool isBackgroundTransparent)
     m_initialImageSize = m_image.size();
 
     updatePixmap();
-    //scale(2.0); // Just for testing the scale function (temporary)
+    //scale(0.5); // Just for testing the scale function (temporary)
 }
 
 bool ScribbleArea::openImage(const QString &fileName)
@@ -274,10 +274,8 @@ void ScribbleArea::paintEvent(QPaintEvent *event)
 void ScribbleArea::resizeEvent(QResizeEvent *event)
 {
     //m_pixmap = m_pixmap.scaled(1.0 * m_pixmap.size(), Qt::AspectRatioMode::KeepAspectRatio, Qt::SmoothTransformation);
-    m_pixmapContainer->resize(m_pixmap.size()); // Resize the image container to fit the pixmap
-    m_pixmapContainer->resize(m_displayScaleFactor * m_pixmapContainer->size()); // Scale the container depending of the scale factor
+    m_pixmapContainer->resize(m_displayScaleFactor * m_pixmap.size()); // Scale the container depending of the scale factor
     m_image = m_image.scaled(m_displayScaleFactor * m_initialImageSize, Qt::KeepAspectRatio);
-
 
     // Resize scribble area and the widget with the tiled background for transparency
     setMinimumSize( m_pixmapContainer->size() ); // Resize drawing area
