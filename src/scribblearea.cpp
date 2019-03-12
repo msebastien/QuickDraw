@@ -11,7 +11,6 @@ ScribbleArea::ScribbleArea(QPen *penTool, QD::Mode mode, QWidget *parent) : QWid
     m_isTransparent = false;
     m_imageOpened = false;
 
-    m_displayScaleFactor = 1.0;
     m_pen = penTool;
     m_filePath = new QString();
 
@@ -23,19 +22,6 @@ ScribbleArea::ScribbleArea(QPen *penTool, QD::Mode mode, QWidget *parent) : QWid
     QImage newImage(QSize(1,1), QImage::Format_ARGB32);
     newImage.fill(QColor(255,255,255));
     m_image = newImage;
-
-    // Init image Size member variable
-    QSize m_initialImageSize(m_image.size());
-
-    // Label/Container
-    m_pixmapContainer = new QLabel(this);
-    m_pixmapContainer->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    m_pixmapContainer->setScaledContents(true);
-
-    // Pixmap
-    QPixmap m_pixmap;
-    m_pixmap.convertFromImage(m_image);
-    m_pixmapContainer->setPixmap(m_pixmap);
 
     // Set default mode
     m_selectedMode = mode;
@@ -56,10 +42,6 @@ void ScribbleArea::createImage(QSize const& size, bool isBackgroundTransparent)
         m_isTransparent = true;
     }
     m_image = newImage;
-    m_initialImageSize = m_image.size();
-
-    updatePixmap();
-    //scale(0.5); // Just for testing the scale function (temporary)
 }
 
 bool ScribbleArea::openImage(const QString &fileName)
@@ -72,12 +54,10 @@ bool ScribbleArea::openImage(const QString &fileName)
     }
 
     m_image = addAlphaChannel(loadedImage);
-    m_initialImageSize = m_image.size();
     m_isTransparent = true;
     m_filePath = new QString(fileName);
     m_imageOpened = true;
 
-    updatePixmap();
     update();
     return true;
 }
@@ -85,7 +65,7 @@ bool ScribbleArea::openImage(const QString &fileName)
 // TODO: Check if the format supports alpha channel. Otherwise, we must replace black pixels with white pixels.
 bool ScribbleArea::saveImage(const QString &fileName, const char *fileFormat)
 {
-    QImage image = scaleImage(1.0); // Make sure to scale the image to its initial size
+    QImage image = m_image;
 
     if (image.save(fileName, fileFormat))
     {
@@ -121,31 +101,6 @@ void ScribbleArea::setMode(QD::Mode mode)
 QD::Mode ScribbleArea::mode() const
 {
     return m_selectedMode;
-}
-
-// TODO : Manage scaling and zoom of the Scribble Area (display)
-void ScribbleArea::scale(double factor)
-{
-    m_displayScaleFactor *= factor;
-    //m_pixmapContainer->resize(m_scaleFactor * m_pixmapContainer->size());
-
-    // Probably useless. Clean up asap
-    //adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
-    //adjustScrollBar(scrollArea->verticalScrollBar(), factor);
-
-    //zoomInAct->setEnabled(scaleFactor < 3.0);
-    //zoomOutAct->setEnabled(scaleFactor > 0.333);
-}
-
-// Return a scaled version of the actual image (QImage) and not the pixmap, its container or the scribble area itself.
-QImage ScribbleArea::scaleImage(double factor)
-{
-    return m_image.scaled(factor * m_initialImageSize, Qt::KeepAspectRatio);
-}
-
-double ScribbleArea::scaleFactor() const
-{
-    return m_displayScaleFactor;
 }
 
 void ScribbleArea::print()
@@ -264,22 +219,14 @@ void ScribbleArea::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     QRect updatedRect = event->rect(); // Draw the rectangular area where we currently draw on
-    //painter.drawPixmap(updatedRect, m_pixmap, updatedRect); // Draw the rectangle where the image needs to be updated
-
-    updatePixmap();
-    m_pixmapContainer->setPixmap(m_pixmap);
-    m_pixmapContainer->update(updatedRect);
+    painter.drawImage(updatedRect, m_image, updatedRect); // Draw the rectangle where the image needs to be updated
 }
 
 void ScribbleArea::resizeEvent(QResizeEvent *event)
 {
-    //m_pixmap = m_pixmap.scaled(1.0 * m_pixmap.size(), Qt::AspectRatioMode::KeepAspectRatio, Qt::SmoothTransformation);
-    m_pixmapContainer->resize(m_displayScaleFactor * m_pixmap.size()); // Scale the container depending of the scale factor
-    m_image = m_image.scaled(m_displayScaleFactor * m_initialImageSize, Qt::KeepAspectRatio);
-
     // Resize scribble area and the widget with the tiled background for transparency
-    setMinimumSize( m_pixmapContainer->size() ); // Resize drawing area
-    parentWidget()->setMaximumSize( QSize(m_pixmapContainer->width()+2*QD::BORDER_SIZE, m_pixmapContainer->height()+2*QD::BORDER_SIZE) ); // Resize parent Widget
+    setMinimumSize( m_image.size() ); // Resize drawing area
+    parentWidget()->setMaximumSize( QSize(m_image.width()+2*QD::BORDER_SIZE, m_image.height()+2*QD::BORDER_SIZE) ); // Resize parent Widget
 
     update();
     QWidget::resizeEvent(event);
@@ -288,10 +235,6 @@ void ScribbleArea::resizeEvent(QResizeEvent *event)
 //----------------------------------------------------------------------------------
 //  PRIVATE METHODS
 //----------------------------------------------------------------------------------
-void ScribbleArea::updatePixmap(){
-    m_pixmap.convertFromImage(m_image);
-}
-
 void ScribbleArea::drawLineTo(const QPoint &endPoint)
 {
     QPainter painter(&m_image);
@@ -334,23 +277,4 @@ QImage ScribbleArea::addAlphaChannel(QImage const& image)
     painter.drawImage(QPoint(0, 0), image);
 
     return newImage;
-}
-
-// DEPRECATED
-void ScribbleArea::resizeImage(QImage *image, const QSize &newSize)
-{
-    if(image->size() == newSize)
-        return;
-
-    // Create a new white image
-    QImage newImage(newSize, QImage::Format_ARGB32);
-    newImage.fill(QColor(255, 255, 255));
-
-    // Draw the image onto the newImage. It allows to avoid black areas
-    // when resizing like with QImage::copy()
-    QPainter painter(&newImage);
-    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    painter.drawImage(QPoint(0, 0), *image);
-
-    *image = newImage;
 }
